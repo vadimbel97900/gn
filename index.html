@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07191b">
+<title>Вечер на удачу — автомат планов</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Yeseva+One&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --oxblood: #3b0b19;
+    --oxblood-hi: #5a1428;
+    --brass: #d9a64a;
+    --brass-hi: #f6dc92;
+    --brass-lo: #a97420;
+    --ivory: #f6eedc;
+    --ink: #13060a;
+    --signal: #e2432f;
+    --felt: #07191b;
+    --text: #f3e7cc;
+    --muted: #c9b68f;
+    --display: "Yeseva One", Georgia, "Times New Roman", serif;
+    --ui: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --cell: clamp(78px, 22vw, 104px);
+    color-scheme: dark;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  *, *::before, *::after { box-sizing: inherit; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse 70% 50% at 50% 28%, rgba(217,166,74,.20), transparent 70%),
+      radial-gradient(ellipse 100% 80% at 50% 100%, #0e3a3a, transparent 70%),
+      var(--felt);
+    background-color: #07191b;
+    color: var(--text);
+    font-family: var(--ui);
+    -webkit-tap-highlight-color: transparent;
+  }
+  main { padding: 18px 12px 40px; overflow-x: hidden; }
+
+  /* ---------- Корпус ---------- */
+  .machine {
+    position: relative;
+    width: min(100%, 470px);
+    margin: 0 auto;
+    padding: 16px 16px 20px;
+    border-radius: 30px;
+    background: linear-gradient(160deg, var(--oxblood-hi), var(--oxblood) 55%, #260711);
+    box-shadow: 0 0 0 3px var(--brass), 0 0 0 8px #6e4a1b, 0 34px 80px rgba(0,0,0,.65), inset 0 2px 0 rgba(255,255,255,.14);
+  }
+  .machine.shake { animation: shake .12s linear 28; }
+  .machine.rattle { animation: shake .1s linear 14; }
+  @keyframes shake {
+    0% { transform: translate(0,0) rotate(0); }
+    25% { transform: translate(-3px,2px) rotate(-.3deg); }
+    50% { transform: translate(3px,-2px) rotate(.3deg); }
+    75% { transform: translate(-2px,-2px) rotate(0); }
+    100% { transform: translate(0,0) rotate(0); }
+  }
+  header { position: relative; text-align: center; padding: 2px 0 10px; }
+  h1 {
+    margin: 0;
+    font-family: var(--display); font-weight: 400;
+    font-size: clamp(2rem, 8.5vw, 2.6rem);
+    letter-spacing: .01em; line-height: 1.1;
+    background: linear-gradient(180deg, #fff1c2, var(--brass) 55%, var(--brass-lo));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 2px 0 rgba(0,0,0,.45));
+  }
+  .tagline { margin: 4px 0 0; font-size: .86rem; color: var(--muted); }
+  .sound {
+    position: absolute; right: 0; top: 4px;
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 1.5px solid rgba(217,166,74,.6);
+    background: rgba(0,0,0,.28); color: var(--text);
+    font-size: 1.05rem; cursor: pointer;
+  }
+  .music {
+    position: absolute; left: 0; top: 4px;
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 1.5px solid rgba(217,166,74,.6);
+    background: rgba(0,0,0,.28); color: var(--text);
+    font-size: 1.1rem; cursor: pointer;
+  }
+  .music.off { opacity: .5; }
+  .music.off::after { content: ""; position: absolute; left: 8px; right: 8px; top: 50%; border-top: 2px solid var(--signal); transform: rotate(-35deg); }
+  .vol { display: flex; align-items: center; gap: 10px; padding: 8px 0 4px; border-top: 1px solid rgba(217,166,74,.2); font-size: .85rem; color: var(--muted); }
+  .vol input { flex: 1; min-width: 0; accent-color: var(--brass); }
+  .bulbs { display: flex; justify-content: space-between; padding: 10px 4px 0; }
+  .bulb {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff8dc, var(--brass-hi) 50%, var(--brass));
+    box-shadow: 0 0 8px 2px rgba(246,220,146,.65);
+  }
+  .bulb:nth-child(even) { background: radial-gradient(circle at 35% 30%, #ffd9d2, #ff8a78 50%, var(--signal)); box-shadow: 0 0 8px 2px rgba(226,67,47,.6); }
+  .spinning .bulb { animation: chase .5s ease-in-out infinite alternate; animation-delay: calc(var(--i) * 45ms); }
+  .flash .bulb { animation: blink .22s steps(2, end) 9; }
+  .angry .bulb { background: radial-gradient(circle at 35% 30%, #ffd9d2, #ff6a55 50%, #b3170a); box-shadow: 0 0 10px 3px rgba(226,67,47,.85); animation: blink .14s steps(2, end) 16; }
+  @keyframes chase { from { opacity: .25; transform: scale(.8); } to { opacity: 1; transform: scale(1.15); } }
+  @keyframes blink { 50% { opacity: .15; } }
+
+  .jackpot-bar {
+    margin: 12px 0 14px; padding: 8px 14px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #1d0910, #12060a);
+    border: 1px solid rgba(217,166,74,.5);
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    font-size: .88rem; color: var(--muted);
+  }
+  .jackpot-bar b {
+    font-family: var(--display); font-weight: 400;
+    font-size: 1.4rem; color: var(--brass-hi);
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 14px rgba(246,220,146,.5);
+  }
+
+  /* ---------- Барабаны ---------- */
+  .window-row { display: flex; gap: 10px; align-items: stretch; }
+  .window {
+    position: relative; flex: 1; padding: 10px;
+    border-radius: 18px;
+    background: linear-gradient(#1a0a0f, #0b0407);
+    box-shadow: inset 0 0 0 2px var(--brass), inset 0 8px 22px rgba(0,0,0,.85);
+  }
+  .window.tease { animation: tease .45s ease-in-out infinite alternate; }
+  @keyframes tease {
+    from { box-shadow: inset 0 0 0 2px var(--brass), inset 0 8px 22px rgba(0,0,0,.85), 0 0 0 rgba(226,67,47,0); }
+    to { box-shadow: inset 0 0 0 3px var(--signal), inset 0 8px 22px rgba(0,0,0,.85), 0 0 28px rgba(226,67,47,.85); }
+  }
+  .reels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .reel {
+    position: relative; height: calc(var(--cell) * 3); overflow: hidden;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #d9ceb4, var(--ivory) 18%, #fffaf0 50%, var(--ivory) 82%, #d9ceb4);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.35);
+  }
+  .reel::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 2;
+    background: linear-gradient(180deg, rgba(20,6,10,.62), transparent 24%, transparent 76%, rgba(20,6,10,.62));
+  }
+  .strip { position: absolute; left: 0; right: 0; top: 0; will-change: transform; }
+  .reel.moving .strip { filter: blur(1.3px); }
+  .cell { height: var(--cell); display: grid; place-items: center; font-size: calc(var(--cell) * .54); line-height: 1; border-radius: 8px; }
+  .cell span { display: block; filter: drop-shadow(0 3px 2px rgba(0,0,0,.28)); }
+  .cell.win {
+    background: rgba(217,166,74,.38);
+    box-shadow: inset 0 0 0 2px var(--brass-lo), 0 0 22px rgba(246,220,146,.9);
+    animation: winPulse .55s ease-in-out 5;
+    position: relative; z-index: 1;
+  }
+  @keyframes winPulse { 50% { transform: scale(1.09); background: rgba(246,220,146,.7); } }
+
+  .payline {
+    position: absolute; left: 3px; right: 3px; top: 50%; height: 0;
+    border-top: 2px solid var(--signal);
+    box-shadow: 0 0 10px 1px rgba(226,67,47,.8);
+    pointer-events: none; z-index: 3;
+  }
+  .payline::before, .payline::after { content: ""; position: absolute; top: -8px; border: 7px solid transparent; }
+  .payline::before { left: -3px; border-left-color: var(--signal); }
+  .payline::after { right: -3px; border-right-color: var(--signal); }
+
+  /* Автомат ругается */
+  .rant {
+    position: absolute; left: 50%; top: 5%; z-index: 6;
+    width: 88%;
+    transform: translateX(-50%) rotate(-2.5deg);
+    padding: 10px 14px 12px;
+    border-radius: 16px;
+    background: #fffaf0; color: #8d1710;
+    border: 3px solid #8d1710;
+    box-shadow: 0 10px 24px rgba(0,0,0,.55);
+    text-align: center; font-weight: 800; font-size: 1.02rem; line-height: 1.25;
+    display: none; cursor: pointer;
+  }
+  .rant small { display: block; margin-bottom: 3px; font-size: .72rem; font-weight: 600; color: #6b5a4a; }
+  .rant::after {
+    content: ""; position: absolute; left: 22px; bottom: -15px;
+    border: 9px solid transparent; border-top: 12px solid #8d1710;
+  }
+  .rant.show { display: block; animation: rantIn .35s cubic-bezier(.2,1.5,.4,1); }
+  @keyframes rantIn { from { transform: translateX(-50%) rotate(-8deg) scale(.4); opacity: 0; } }
+
+  /* ---------- Рычаг ---------- */
+  .lever { position: relative; width: 38px; }
+  .lever .rail {
+    position: absolute; left: 50%; top: 16px; bottom: 16px; width: 12px; margin-left: -6px; border-radius: 6px;
+    background: linear-gradient(90deg, #0a0305, #2a1018, #0a0305);
+    box-shadow: inset 0 0 0 1px rgba(217,166,74,.4);
+  }
+  .lever .stick {
+    position: absolute; left: 50%; top: 30px; width: 7px; margin-left: -3.5px; height: 18px; border-radius: 4px;
+    background: linear-gradient(90deg, #8a8a8a, #f2f2f2, #7a7a7a);
+    transition: height .24s ease-in;
+  }
+  .lever .knob {
+    position: absolute; left: 50%; top: 6px; width: 36px; height: 36px; margin-left: -18px;
+    border: 0; padding: 0; border-radius: 50%;
+    background: radial-gradient(circle at 35% 28%, #ffb4a4, var(--signal) 45%, #8d1710);
+    box-shadow: 0 5px 8px rgba(0,0,0,.55), inset 0 -3px 5px rgba(0,0,0,.3);
+    cursor: pointer; transition: top .24s ease-in;
+  }
+  .lever.pulled .knob { top: 112px; }
+  .lever.pulled .stick { height: 96px; }
+  .lever.release .knob, .lever.release .stick { transition: top .35s cubic-bezier(.3,1.6,.5,1), height .35s cubic-bezier(.3,1.6,.5,1); }
+
+  /* ---------- Билет с планом ---------- */
+  .msg {
+    min-height: 1.6em; margin: 12px 0 8px;
+    display: grid; place-items: center; text-align: center;
+    font-weight: 800; font-size: 1rem; color: var(--brass-hi);
+  }
+  .msg.win { color: #ffe9a3; text-shadow: 0 0 16px rgba(246,220,146,.7); }
+  .msg.lose { color: var(--muted); font-weight: 700; }
+  .msg.tease { color: #ff9a88; animation: msgTease .45s ease-in-out infinite alternate; }
+  @keyframes msgTease { to { opacity: .45; } }
+
+  .ticket {
+    position: relative;
+    margin: 0 0 12px; padding: 14px 22px 14px;
+    background: var(--ivory); color: #2a0813;
+    border-radius: 12px;
+    -webkit-mask: radial-gradient(circle 9px at 0 50%, #0000 97%, #000) left / 51% 100% no-repeat,
+                  radial-gradient(circle 9px at 100% 50%, #0000 97%, #000) right / 51% 100% no-repeat;
+    mask: radial-gradient(circle 9px at 0 50%, #0000 97%, #000) left / 51% 100% no-repeat,
+          radial-gradient(circle 9px at 100% 50%, #0000 97%, #000) right / 51% 100% no-repeat;
+  }
+  .ticket.new { animation: ticketIn .45s cubic-bezier(.2,1.2,.4,1); }
+  @keyframes ticketIn { from { transform: translateY(14px) scale(.96); opacity: 0; } }
+  .stamp {
+    display: inline-block; margin-bottom: 8px; padding: 2px 9px;
+    border: 2px solid currentColor; border-radius: 6px;
+    font-size: .78rem; font-weight: 800; transform: rotate(-2deg);
+    color: #6b5a4a;
+  }
+  .t-bad .stamp { color: #8d4a1a; }
+  .t-ok .stamp { color: #3a6a54; }
+  .t-good .stamp { color: #a95a00; }
+  .t-epic .stamp { color: #b3170a; }
+  .t-jackpot .stamp { color: #1b5fa8; }
+  .ticket h2 { margin: 0 0 4px; font-family: var(--display); font-weight: 400; font-size: 1.4rem; line-height: 1.2; }
+  .ticket p { margin: 0; font-size: .92rem; line-height: 1.45; color: #4a3a30; max-width: 60ch; }
+
+  /* ---------- Табло ---------- */
+  .panel { display: grid; grid-template-columns: 1.25fr 1fr .9fr; gap: 8px; }
+  .stat {
+    padding: 8px 10px 10px; min-width: 0;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #1d0910, var(--ink));
+    border: 1px solid rgba(217,166,74,.45);
+    box-shadow: inset 0 2px 8px rgba(0,0,0,.6);
+  }
+  .stat small { display: block; font-size: .74rem; color: var(--muted); font-weight: 500; }
+  .stat output {
+    display: block; margin-top: 2px;
+    font-weight: 800; font-size: 1.3rem; line-height: 1.2;
+    color: var(--brass-hi); font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 12px rgba(246,220,146,.35);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .stat.dim output { color: var(--muted); text-shadow: none; }
+  .stat.pop output { animation: pop .45s ease-out; }
+  @keyframes pop { 40% { transform: scale(1.12); color: #fff; } }
+
+  /* ---------- Риск ---------- */
+  .gamble {
+    display: flex; align-items: center; gap: 12px;
+    margin: 12px 0 0; padding: 10px 12px;
+    border-radius: 14px; background: rgba(0,0,0,.35);
+    border: 1px dashed rgba(217,166,74,.7);
+  }
+  .gamble[hidden] { display: none; }
+  .g-card {
+    flex: none; width: 46px; height: 64px; border-radius: 8px;
+    display: grid; place-items: center;
+    font-size: 1.9rem; font-weight: 800; color: #222; background: #fffaf0;
+    box-shadow: 0 3px 8px rgba(0,0,0,.5);
+  }
+  .g-card.back {
+    color: transparent;
+    background: repeating-linear-gradient(45deg, #7d130c 0 5px, #5a0d08 5px 10px);
+    box-shadow: 0 3px 8px rgba(0,0,0,.5), inset 0 0 0 3px #fffaf0;
+  }
+  .g-card.red { color: #d12a1d; }
+  .g-card.flip { animation: flipCard .5s ease-in-out; }
+  @keyframes flipCard { 50% { transform: rotateY(90deg); } }
+  .g-body { flex: 1; min-width: 0; }
+  .g-title { font-size: .9rem; margin-bottom: 8px; color: var(--muted); }
+  .g-title b { color: var(--brass-hi); font-variant-numeric: tabular-nums; }
+  .g-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .g-btns .chip { height: 36px; min-width: 0; padding: 0 12px; font-size: .9rem; }
+  .chip.red { border-color: var(--signal); color: #ff9a88; }
+  .chip.blk { border-color: #cfcfcf; color: #fff; }
+
+  /* ---------- Управление ---------- */
+  .bet-row { display: flex; align-items: center; gap: 8px; margin: 14px 0 12px; }
+  .bet-row .label { font-size: .88rem; color: var(--muted); margin-right: auto; }
+  .chip {
+    min-width: 42px; height: 42px; padding: 0 12px;
+    display: inline-grid; place-items: center;
+    border-radius: 12px;
+    border: 1.5px solid rgba(217,166,74,.65);
+    background: linear-gradient(180deg, rgba(255,255,255,.1), rgba(0,0,0,.25));
+    color: var(--brass-hi);
+    font: 800 1.1rem var(--ui); cursor: pointer;
+  }
+  .chip:disabled { opacity: .35; cursor: not-allowed; }
+  .chip:not(:disabled):active { transform: translateY(1px); }
+  .bet-val { min-width: 62px; text-align: center; font-weight: 800; font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+  .chip.max { font-size: .9rem; }
+
+  .spin-row { display: grid; grid-template-columns: 1fr 88px; gap: 10px; }
+  .spin {
+    height: 62px; border: 0; border-radius: 18px;
+    background: linear-gradient(180deg, var(--brass-hi), var(--brass) 55%, var(--brass-lo));
+    color: #2a0813;
+    font-family: var(--display); font-size: 1.6rem; letter-spacing: .01em;
+    box-shadow: 0 6px 0 #6b4513, 0 12px 22px rgba(0,0,0,.45), inset 0 2px 0 rgba(255,255,255,.55);
+    cursor: pointer; transition: transform .08s, box-shadow .08s;
+  }
+  .spin:not(:disabled):active { transform: translateY(4px); box-shadow: 0 2px 0 #6b4513, 0 6px 12px rgba(0,0,0,.4), inset 0 2px 0 rgba(255,255,255,.55); }
+  .spin:disabled { filter: saturate(.5) brightness(.8); cursor: wait; }
+  .auto {
+    height: 62px; border-radius: 18px;
+    border: 2px solid rgba(217,166,74,.7);
+    background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.3));
+    color: var(--brass-hi); font: 800 1rem var(--ui); cursor: pointer;
+  }
+  .auto.on { background: linear-gradient(180deg, #f08a78, var(--signal)); color: #fff; border-color: #ffb3a6; box-shadow: 0 0 18px rgba(226,67,47,.7); }
+  button:focus-visible, summary:focus-visible, .file:focus-within { outline: 3px solid var(--brass-hi); outline-offset: 3px; }
+
+  /* ---------- Нижние панели ---------- */
+  details {
+    width: min(100%, 470px); margin: 16px auto 0;
+    border-radius: 18px; background: rgba(0,0,0,.32);
+    border: 1px solid rgba(217,166,74,.4);
+    padding: 4px 16px;
+  }
+  details:first-of-type { margin-top: 22px; }
+  summary { cursor: pointer; padding: 12px 0; font-weight: 800; color: var(--brass-hi); }
+  .pay { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 6px 14px; padding: 4px 0 12px; font-size: .95rem; }
+  .pay .g { font-size: 1.1rem; }
+  .pay .n { color: var(--text); }
+  .pay .x { font-weight: 800; font-variant-numeric: tabular-nums; color: var(--brass-hi); text-align: right; }
+  .note { margin: 0 0 14px; font-size: .84rem; color: var(--muted); line-height: 1.55; }
+  .log { margin: 0; padding: 0 0 12px; list-style: none; display: grid; gap: 6px; font-size: .92rem; }
+  .log li { display: flex; gap: 10px; align-items: baseline; }
+  .log .e { flex: none; }
+  .log .empty { color: var(--muted); }
+
+  .srow { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; padding: 8px 0; border-top: 1px solid rgba(217,166,74,.2); }
+  .srow:first-of-type { border-top: 0; }
+  .srow b { display: block; font-size: .95rem; }
+  .srow small { display: block; margin-top: 2px; color: var(--muted); font-size: .78rem; overflow-wrap: anywhere; }
+  .srow small.ok { color: #9fd9b4; }
+  .srow .chip { height: 38px; font-size: .88rem; }
+  .file { position: relative; }
+  .file input { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
+
+  /* ---------- Джекпот ---------- */
+  .jp-overlay {
+    position: fixed; inset: 0; z-index: 40; overflow: hidden;
+    display: none; place-items: center; text-align: center;
+    background: radial-gradient(circle, rgba(70,10,28,.88), rgba(5,0,3,.95));
+    padding: 24px; cursor: pointer;
+  }
+  .jp-overlay.show { display: grid; }
+  .jp-overlay .rays {
+    position: absolute; left: 50%; top: 50%; width: 200vmax; height: 200vmax; margin: -100vmax 0 0 -100vmax;
+    background: repeating-conic-gradient(from 0deg, rgba(246,220,146,.20) 0deg 7deg, transparent 7deg 22deg);
+    -webkit-mask-image: radial-gradient(circle, #000 4%, transparent 38%);
+    mask-image: radial-gradient(circle, #000 4%, transparent 38%);
+    animation: spinRays 26s linear infinite;
+  }
+  @keyframes spinRays { to { transform: rotate(360deg); } }
+  .jp-overlay .lamp { position: absolute; top: 14px; width: 54px; height: 54px; border-radius: 50%; animation: lamp .35s steps(2, end) infinite; }
+  .jp-overlay .lamp.l { left: 6%; background: radial-gradient(circle at 35% 30%, #ffd0c8, #ff4b36 55%, #7a0f06); box-shadow: 0 0 40px 12px rgba(255,75,54,.75); }
+  .jp-overlay .lamp.r { right: 6%; background: radial-gradient(circle at 35% 30%, #fff1b8, #ffc233 55%, #7a5206); box-shadow: 0 0 40px 12px rgba(255,194,51,.75); animation-delay: .175s; }
+  @keyframes lamp { 50% { opacity: .15; } }
+  .jp-overlay .box { position: relative; z-index: 2; max-width: 440px; animation: jpIn .8s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes jpIn { from { transform: scale(.25) rotate(-8deg); opacity: 0; } }
+  .jp-overlay .gems { font-size: clamp(2.6rem, 14vw, 4.6rem); line-height: 1.1; filter: drop-shadow(0 0 28px rgba(120,220,255,.85)); animation: gemBob 1.2s ease-in-out infinite alternate; }
+  @keyframes gemBob { to { transform: translateY(-8px) scale(1.06); } }
+  .jp-overlay h2 {
+    margin: 8px 0 8px; font-family: var(--display); font-weight: 400;
+    font-size: clamp(2.2rem, 11.5vw, 4.2rem); line-height: 1.1;
+    background: linear-gradient(180deg, #fff6d0, var(--brass) 60%, var(--brass-lo));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 4px 0 rgba(0,0,0,.5));
+    animation: jpPulse .6s ease-in-out infinite alternate;
+  }
+  @keyframes jpPulse { to { transform: scale(1.05); } }
+  .jp-overlay .jp-plan { font-size: 1.15rem; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+  .jp-overlay .jp-text { font-size: .95rem; color: var(--muted); margin-bottom: 14px; line-height: 1.45; }
+  .jp-overlay .amount { font-weight: 800; font-size: clamp(2.1rem, 11vw, 3.4rem); color: var(--brass-hi); font-variant-numeric: tabular-nums; text-shadow: 0 0 24px rgba(246,220,146,.7); }
+  .jp-overlay p { margin: 14px 0 0; color: var(--muted); }
+  #fx { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 60; pointer-events: none; }
+
+  /* ---------- Приветственное окно ---------- */
+  .welcome {
+    position: fixed; inset: 0; z-index: 70;
+    display: grid; place-items: center;
+    padding: calc(24px + env(safe-area-inset-top, 0px)) 20px calc(24px + env(safe-area-inset-bottom, 0px));
+    background: rgba(7, 25, 27, .6);
+    -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
+    transition: opacity .35s ease;
+  }
+  .welcome[hidden] { display: none; }
+  #soundsBox { display: none; }
+  .welcome.out { opacity: 0; pointer-events: none; }
+  .welcome .card {
+    width: min(100%, 390px);
+    padding: 26px 24px 22px;
+    text-align: center;
+    border-radius: 26px;
+    background: linear-gradient(160deg, rgba(90, 20, 40, .88), rgba(38, 7, 17, .9));
+    box-shadow: 0 0 0 2px var(--brass), 0 0 0 6px rgba(110, 74, 27, .75), 0 30px 70px rgba(0, 0, 0, .6);
+  }
+  .welcome .emoji { font-size: 2.6rem; line-height: 1; }
+  .welcome h2 {
+    margin: 10px 0 8px;
+    font-family: var(--display); font-weight: 400; font-size: 1.9rem; line-height: 1.15;
+    background: linear-gradient(180deg, #fff1c2, var(--brass) 55%, var(--brass-lo));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .welcome p { margin: 0 0 8px; font-size: .96rem; line-height: 1.5; color: var(--text); }
+  .welcome .hint { font-size: .84rem; color: var(--muted); }
+  .welcome .hint[hidden] { display: none; }
+  .welcome .go {
+    width: 100%; height: 56px; margin-top: 14px;
+    border: 0; border-radius: 16px;
+    background: linear-gradient(180deg, var(--brass-hi), var(--brass) 55%, var(--brass-lo));
+    color: #2a0813;
+    font-family: var(--display); font-size: 1.4rem;
+    box-shadow: 0 5px 0 #6b4513, 0 10px 20px rgba(0, 0, 0, .4), inset 0 2px 0 rgba(255, 255, 255, .55);
+    cursor: pointer;
+  }
+  .welcome .go:active { transform: translateY(3px); box-shadow: 0 2px 0 #6b4513, 0 5px 10px rgba(0, 0, 0, .4), inset 0 2px 0 rgba(255, 255, 255, .55); }
+
+  /* ---------- Телефон ---------- */
+  body { overscroll-behavior-y: none; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+  .ticket, .log { -webkit-user-select: text; user-select: text; }
+  @media (max-width: 600px) {
+    :root { --cell: clamp(60px, min(21vw, 11.5vh), 100px); }
+    main { padding: 10px 8px 24px; }
+    .machine { padding: 12px 12px 16px; border-radius: 26px; }
+    .tagline { display: none; }
+    header { padding-bottom: 6px; }
+    h1 { font-size: clamp(1.7rem, 8vw, 2.2rem); }
+    .sound, .music { width: 42px; height: 42px; }
+    .jackpot-bar { margin: 8px 0 10px; padding: 6px 12px; }
+    .msg { margin: 8px 0 6px; min-height: 1.4em; font-size: .95rem; }
+    .ticket { padding: 10px 20px; margin-bottom: 10px; }
+    .ticket h2 { font-size: 1.25rem; }
+    .ticket p { font-size: .86rem; line-height: 1.4; }
+    .stamp { margin-bottom: 5px; }
+    .stat output { font-size: 1.2rem; }
+    .chip { min-width: 46px; height: 46px; }
+    .g-btns .chip { height: 40px; }
+    details { margin-top: 12px; }
+    /* Панель управления прилипает к низу экрана, чтобы крутить было удобно одним пальцем */
+    .controls {
+      position: sticky; bottom: 0; z-index: 5;
+      margin: 12px -12px -16px;
+      padding: 14px 12px calc(14px + env(safe-area-inset-bottom, 0px));
+      background: linear-gradient(180deg, rgba(38, 7, 17, 0), rgba(38, 7, 17, .94) 24%);
+      -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+      border-radius: 0 0 24px 24px;
+    }
+    .controls .bet-row { margin: 0 0 10px; }
+    .spin, .auto { height: 58px; }
+  }
+
+  @media (max-width: 380px) {
+    .machine { padding: 12px 10px 16px; }
+    .window { padding: 7px; }
+    .lever { width: 30px; }
+    .lever .knob { width: 30px; height: 30px; margin-left: -15px; }
+    .stat output { font-size: 1.1rem; }
+    .ticket h2 { font-size: 1.2rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .spinning .bulb, .flash .bulb, .angry .bulb, .cell.win, .jp-overlay .box, .stat.pop output, .machine.shake, .machine.rattle,
+    .window.tease, .msg.tease, .jp-overlay .rays, .jp-overlay .lamp, .jp-overlay .gems, .jp-overlay h2, .rant.show, .ticket.new { animation: none; }
+    .reel.moving .strip { filter: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <section class="machine" id="machine">
+    <header>
+      <h1>Вечер на удачу</h1>
+      <p class="tagline">Автомат придумает, чем вы займётесь сегодня вечером</p>
+      <button class="music" id="music" aria-label="Включить музыку" aria-pressed="true" title="Музыка">🎵</button>
+      <button class="sound" id="sound" aria-label="Выключить звук" title="Звук">🔊</button>
+      <div class="bulbs" id="bulbs" aria-hidden="true"></div>
+    </header>
+
+    <div class="jackpot-bar">
+      <span>Джекпот · легендарный вечер 💎</span>
+      <b id="jp">0</b>
+    </div>
+
+    <div class="window-row">
+      <div class="window" id="frame">
+        <div class="reels" id="reels"></div>
+        <div class="payline"></div>
+        <div class="rant" id="rant" role="alert"><small>Автомат, не сдержавшись:</small>«Ё***ный рот этого казино, б***ь!»</div>
+      </div>
+      <div class="lever" id="lever">
+        <div class="rail"></div>
+        <div class="stick"></div>
+        <button class="knob" id="knob" aria-label="Дёрнуть рычаг"></button>
+      </div>
+    </div>
+
+    <div class="msg" id="msg" role="status" aria-live="polite">Сделайте ставку и крутите</div>
+
+    <section class="ticket" id="ticket">
+      <div class="stamp" id="stamp">Ваш вечер</div>
+      <h2 id="tTitle">Что делаем сегодня вечером?</h2>
+      <p id="tText">Дёрните рычаг, и автомат подберёт план. Бывает по-разному: от фейерверка до мытья полов.</p>
+    </section>
+
+    <div class="panel">
+      <div class="stat" id="balBox"><small>Монеты</small><output id="balance">1 000</output></div>
+      <div class="stat" id="winBox"><small>Выигрыш</small><output id="win">0</output></div>
+      <div class="stat dim" id="bestBox"><small>Рекорд</small><output id="best">0</output></div>
+    </div>
+
+    <div class="gamble" id="gamble" hidden>
+      <div class="g-card back" id="gCard">?</div>
+      <div class="g-body">
+        <div class="g-title">Рискнуть: угадайте цвет карты и получите <b id="gAmt">0</b></div>
+        <div class="g-btns">
+          <button class="chip red" id="gRed">Красная</button>
+          <button class="chip blk" id="gBlack">Чёрная</button>
+          <button class="chip" id="gTake">Забрать</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+    <div class="bet-row">
+      <span class="label">Ставка</span>
+      <button class="chip" id="minus" aria-label="Уменьшить ставку">−</button>
+      <span class="bet-val" id="bet">10</span>
+      <button class="chip" id="plus" aria-label="Увеличить ставку">+</button>
+      <button class="chip max" id="max">Макс</button>
+    </div>
+
+    <div class="spin-row">
+      <button class="spin" id="spin">Придумать вечер</button>
+      <button class="auto" id="auto" aria-pressed="false">Авто</button>
+    </div>
+    </div>
+  </section>
+
+  <details id="soundsBox">
+    <summary>Звуки автомата</summary>
+    <div class="srow">
+      <div><b>Все файлы сразу</b><small id="sAll">Выберите из папки сразу три файла: 123456789.mp3, moneyjackpot (4).mp3 и fon.mp3. Автомат сам поймёт, какой куда. Делать это нужно один раз.</small></div>
+      <label class="chip file">Выбрать<input type="file" accept="audio/*" id="fAll" multiple></label>
+    </div>
+    <div class="srow">
+      <div><b>Дерьмовый план</b><small id="sLose">Файл не выбран. Пока играет встроенный грустный звук.</small></div>
+      <label class="chip file">Выбрать<input type="file" accept="audio/*" id="fLose"></label>
+      <button class="chip" id="tLose" aria-label="Проверить звук проигрыша">▶</button>
+    </div>
+    <div class="srow">
+      <div><b>Выигрыш</b><small id="sWin">Файл не выбран. Пока играет встроенный колокольчик.</small></div>
+      <label class="chip file">Выбрать<input type="file" accept="audio/*" id="fWin"></label>
+      <button class="chip" id="tWin" aria-label="Проверить звук выигрыша">▶</button>
+    </div>
+    <div class="srow">
+      <div><b>Фоновая музыка</b><small id="sBg">Файл не выбран. Выберите fon.mp3, и музыка заиграет по кругу.</small></div>
+      <label class="chip file">Выбрать<input type="file" accept="audio/*" id="fBg"></label>
+      <button class="chip" id="tBg" aria-label="Включить или выключить музыку">▶</button>
+    </div>
+    <div class="vol"><label for="vBg">Громкость музыки</label><input type="range" id="vBg" min="0" max="100" value="35"></div>
+    <p class="note">Звук выигрыша обрезается до 5 секунд, последние полторы секунды плавно затухают. Музыка играет по кругу и тише, пока звучат звуки автомата. Файлы остаются в вашем браузере и никуда не отправляются.</p>
+  </details>
+
+  <details>
+    <summary>Планы и выплаты</summary>
+    <div class="pay" id="pay"></div>
+    <p class="note">
+      Автомат подбирает вечер, а барабаны показывают его иконки. Хорошие планы приносят монеты, дерьмовые — забирают ставку.<br>
+      Джекпот: легендарный вечер забирает весь накопленный банк и ещё ×10 ставки. Банк растёт с каждой ставкой.<br>
+      Если на первых двух барабанах выпали 💎💎, последний крутится дольше. Бывает, что он выдаёт совсем не то.<br>
+      После классного или эпичного вечера можно рискнуть и удвоить выигрыш, угадав цвет карты, до трёх раз подряд. Пробел или Enter тоже крутят.
+    </p>
+  </details>
+
+  <details>
+    <summary>Журнал вечеров</summary>
+    <ul class="log" id="log"><li class="empty">Пока пусто. Крутите!</li></ul>
+  </details>
+</main>
+
+<div class="jp-overlay" id="jpOverlay">
+  <div class="rays"></div>
+  <i class="lamp l"></i><i class="lamp r"></i>
+  <div class="box">
+    <div class="gems">💎💎💎</div>
+    <h2>Легендарный вечер!</h2>
+    <div class="jp-plan" id="jpPlan"></div>
+    <div class="jp-text" id="jpText"></div>
+    <div class="amount">+<span id="jpAmount">0</span></div>
+    <p>Нажмите, чтобы продолжить</p>
+  </div>
+</div>
+<div class="welcome" id="welcome" role="dialog" aria-modal="true" aria-labelledby="wTitle">
+  <div class="card">
+    <div class="emoji">🎰</div>
+    <h2 id="wTitle">Добро пожаловать в «Вечер на удачу»</h2>
+    <p>Автомат придумает, чем заняться сегодня вечером. Дёрните рычаг и получите план: от фейерверка до мытья полов, как повезёт.</p>
+    <button class="go" id="wGo">Понятно</button>
+  </div>
+</div>
+<canvas id="fx"></canvas>
+
+<script>
+(() => {
+  /* ---------- Данные ---------- */
+  const TIERS = {
+    bad:     { w: .34,  mult: 0,   label: 'Дерьмовый план',    emoji: '💩' },
+    ok:      { w: .36,  mult: 1,   label: 'Нормальный вечер',  emoji: '🙂' },
+    good:    { w: .20,  mult: 1.5, label: 'Классный вечер',    emoji: '🔥' },
+    epic:    { w: .075, mult: 3,   label: 'Эпичный вечер',     emoji: '🚀' },
+    jackpot: { w: .005, mult: 10,  label: 'Легендарный вечер', emoji: '💎' },
+  };
+  const PLANS = [
+    // дерьмовые
+    { t: 'bad', i: ['🧹', '🪣', '🧽'], title: 'Мыть полы', text: 'Ведро, швабра и вся квартира в вашем распоряжении. Музыку можно, радости нельзя.' },
+    { t: 'bad', i: ['🚿', '🛁', '😴'], title: 'Сходить в душ и лечь спать', text: 'Главное событие вечера — тёплая вода. Зато вы чистый.' },
+    { t: 'bad', i: ['📦', '🕸️', '🧰'], title: 'Разобрать балкон', text: 'Там что-то лежит с 2019 года. Сегодня вы узнаете, что.' },
+    { t: 'bad', i: ['👔', '♨️', '🧺'], title: 'Погладить всё бельё', text: 'Гора рубашек и ни одной причины, почему именно сегодня.' },
+    { t: 'bad', i: ['🗑️', '🍽️', '🧼'], title: 'Вынести мусор и помыть посуду', text: 'Классика, которая никогда не заканчивается.' },
+    { t: 'bad', i: ['☎️', '📄', '😵'], title: 'Позвонить в налоговую', text: 'Ваш звонок очень важен для нас. Ждите ответа. Долго.' },
+    { t: 'bad', i: ['💼', '📱', '😩'], title: 'Ответить на 47 рабочих сообщений', text: 'Все срочные. Все со вчерашнего дня.' },
+    { t: 'bad', i: ['📺', '🔁', '🥴'], title: 'Выбирать, что посмотреть, до полуночи', text: 'Листаете, листаете, листаете… и ложитесь спать ничего не включив.' },
+    // нормальные
+    { t: 'ok', i: ['🎬', '🍿', '🛋️'], title: 'Кино с попкорном', text: 'Классика не стареет. Плед по желанию.' },
+    { t: 'ok', i: ['🍕', '📺', '🛋️'], title: 'Пицца и сериал', text: 'Сначала пицца, потом ещё одна серия. И ещё одна.' },
+    { t: 'ok', i: ['🚶', '🌆', '🎧'], title: 'Прогулка по набережной', text: 'Наушники, любимый плейлист и никакой цели.' },
+    { t: 'ok', i: ['🍝', '🍷', '🍳'], title: 'Паста и бокал вина', text: 'Приготовьте что-то вкусное и накройте на стол как для гостей.' },
+    { t: 'ok', i: ['📖', '🧣', '☕'], title: 'Книга под пледом', text: 'Телефон в другую комнату. Ровно на час.' },
+    { t: 'ok', i: ['📞', '👋', '😊'], title: 'Позвонить старому другу', text: 'Вы давно собирались. Вот и повод.' },
+    { t: 'ok', i: ['🎮', '🍕', '🌙'], title: 'Видеоигры до ночи', text: 'Ещё один матч — и спать. Конечно.' },
+    { t: 'ok', i: ['🧘', '🍵', '🕯️'], title: 'Йога и чай', text: 'Спокойный вечер, чтобы выдохнуть.' },
+    // классные
+    { t: 'good', i: ['🍽️', '🍷', '✨'], title: 'Ужин в новом ресторане', text: 'Закажите то, что не умеете произносить.' },
+    { t: 'good', i: ['🎤', '🎶', '🥳'], title: 'Караоке с друзьями', text: 'Петь не обязательно хорошо. Обязательно громко.' },
+    { t: 'good', i: ['🌇', '🏙️', '🥂'], title: 'Вечер на крыше', text: 'Закат, город внизу и бокал в руке.' },
+    { t: 'good', i: ['🎳', '🍔', '🏆'], title: 'Боулинг и бургеры', text: 'Проигравший платит за картошку.' },
+    { t: 'good', i: ['🎸', '🎟️', '🔥'], title: 'Концерт живой музыки', text: 'Найдите, кто играет сегодня рядом, и идите.' },
+    { t: 'good', i: ['🎥', '🍦', '🌃'], title: 'Ночной кинотеатр и мороженое', text: 'Последний сеанс и сладкая дорога домой.' },
+    { t: 'good', i: ['🧺', '🌅', '🍓'], title: 'Пикник на закате', text: 'Плед, фрукты и никто никуда не торопится.' },
+    { t: 'good', i: ['🎙️', '😂', '🍺'], title: 'Стендап-вечер', text: 'Смеяться до боли в животе. Лечится повторением.' },
+    // эпичные
+    { t: 'epic', i: ['🏕️', '🔥', '🌌'], title: 'Костёр и звёзды за городом', text: 'Палатка, гитара и небо без единого фонаря.' },
+    { t: 'epic', i: ['🛥️', '🍹', '🎧'], title: 'Вечеринка на яхте', text: 'Волны, музыка и закат с палубы.' },
+    { t: 'epic', i: ['🎆', '🍾', '🎉'], title: 'Фейерверк-шоу', text: 'Самое громкое место города сегодня — ваше.' },
+    { t: 'epic', i: ['🎈', '🌅', '🥂'], title: 'Полёт на воздушном шаре', text: 'Город внизу как игрушечный. Шампанское наверху настоящее.' },
+    { t: 'epic', i: ['🌊', '⭐', '🌙'], title: 'Ночное купание под звёздами', text: 'Тёплая вода, тишина и никого вокруг.' },
+    { t: 'epic', i: ['💃', '🌹', '🌃'], title: 'Свидание с неожиданным финалом', text: 'Танцы до утра. Продолжение — по обстоятельствам.' },
+    // легендарные
+    { t: 'jackpot', i: ['💎', '💎', '💎'], title: 'Ночной рейс в Париж', text: 'Ужин у Эйфелевой башни, круассаны на рассвете, обратный билет — потом.' },
+    { t: 'jackpot', i: ['💎', '💎', '💎'], title: 'Вилла у моря на всю ночь', text: 'Бассейн, друзья, музыка и шеф-повар, который знает ваши любимые блюда.' },
+    { t: 'jackpot', i: ['💎', '💎', '💎'], title: 'Закрытый концерт любимой группы', text: 'Вас ждут в первом ряду. Телефон лучше убрать, вы будете слишком заняты.' },
+  ];
+  const ALL_ICONS = [...new Set(PLANS.flatMap(p => p.i))];
+  const BETS = [10, 20, 50, 100, 200, 500];
+  const START_BALANCE = 1000, JP_SEED = 500, JP_RATE = 0.10, JP_MULT = 10;
+  const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Финальный «раскат»: карточки по одной всё медленнее, на каждой — «цок». Время на карточку, мс
+  const N_DECEL = REDUCED ? 8 : 17;          // сколько карточек проходит во время плавной докрутки
+  const SLOW_TOTAL = 150 * N_DECEL;          // длительность докрутки, мс
+
+  const $ = id => document.getElementById(id);
+  const els = {
+    machine: $('machine'), bulbs: $('bulbs'), reels: $('reels'), frame: $('frame'), lever: $('lever'), knob: $('knob'), rant: $('rant'),
+    msg: $('msg'), ticket: $('ticket'), stamp: $('stamp'), tTitle: $('tTitle'), tText: $('tText'),
+    balance: $('balance'), win: $('win'), best: $('best'), balBox: $('balBox'), winBox: $('winBox'), bestBox: $('bestBox'),
+    bet: $('bet'), minus: $('minus'), plus: $('plus'), max: $('max'), spin: $('spin'), auto: $('auto'),
+    jp: $('jp'), jpOverlay: $('jpOverlay'), jpAmount: $('jpAmount'), jpPlan: $('jpPlan'), jpText: $('jpText'),
+    sound: $('sound'), pay: $('pay'), log: $('log'),
+    gamble: $('gamble'), gCard: $('gCard'), gAmt: $('gAmt'), gRed: $('gRed'), gBlack: $('gBlack'), gTake: $('gTake'),
+  };
+  const fmt = n => Math.round(n).toLocaleString('ru-RU');
+  const rnd = a => a[Math.floor(Math.random() * a.length)];
+
+  /* ---------- Состояние ---------- */
+  const KEY = 'fortuna-evening-v1';
+  let balance = START_BALANCE, shown = START_BALANCE, betIdx = 0, pool = JP_SEED, best = 0, history = [];
+  let spinning = false, muted = false, auto = false, autoTimer = 0, jpShown = 0, gamble = null, lastPlan = null;
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && Number.isFinite(s.balance) && s.balance >= 0) {
+      balance = shown = s.balance;
+      betIdx = Math.min(Math.max(s.betIdx | 0, 0), BETS.length - 1);
+      if (Number.isFinite(s.pool) && s.pool >= JP_SEED) pool = s.pool;
+      if (Number.isFinite(s.best)) best = s.best;
+      if (Array.isArray(s.history)) history = s.history.slice(0, 6);
+    }
+  } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ balance, betIdx, pool, best, history })); } catch (e) {} };
+  const bet = () => BETS[betIdx];
+  const jackpotNow = () => pool + bet() * JP_MULT;
+
+  /* ---------- Барабаны ---------- */
+  const randIcon = () => rnd(ALL_ICONS);
+  const cellHTML = g => `<div class="cell"><span>${g}</span></div>`;
+  const reels = [0, 1, 2].map(() => {
+    const el = document.createElement('div');
+    el.className = 'reel';
+    const strip = document.createElement('div');
+    strip.className = 'strip';
+    el.appendChild(strip);
+    els.reels.appendChild(el);
+    const r = { el, strip, cur: [randIcon(), randIcon(), randIcon()] };
+    const draw = () => { strip.innerHTML = r.cur.map(cellHTML).join(''); };
+    draw();
+    r.spin = (target, dur, onTok, onSlow, nDecel, ease, sub, msCell, slowMs, trMs) => new Promise(resolve => {
+      const cellH = el.clientHeight / 3;
+      const N_DECEL = nDecel || 17, E = ease || 3, S = sub || 1, MS = msCell || 50, MS2 = slowMs || (msCell || 50), TR = trMs || 0;   // E — круче степень, тем дольше «подползание» последней карточки
+      const fastCells = Math.max(4, Math.round(dur / MS));
+      const trCellsF = TR ? TR * (1 / MS + 1 / MS2) / 2 : 0;   // сколько карточек проходит пока барабан плавно уходит с быстрой скорости на медленную
+      const trCells = Math.ceil(trCellsF);
+      const n = fastCells + trCells + N_DECEL - 3;
+      const filler = Array.from({ length: n }, randIcon);
+      const final = [randIcon(), target, randIcon()];
+      const items = [...r.cur, ...filler, ...final];
+      strip.style.transition = 'none';
+      strip.style.transform = 'translateY(0)';
+      strip.innerHTML = items.map(cellHTML).join('');
+      void strip.offsetHeight;
+      if (MS < 80) el.classList.add('moving');
+      // Быстрая фаза с постоянной скоростью, потом одно непрерывное плавное торможение (кубический ease-out).
+      // Длина торможения подобрана так, чтобы скорость на стыке фаз совпадала (без рывка).
+      const v0 = cellH / MS;
+      const T1 = fastCells * MS;
+      const D2c = N_DECEL + trCells - trCellsF;            // карточек в финальной докрутке (чтобы сумма была целой)
+      const T2 = MS2 * E * D2c, v1 = cellH / MS2;
+      const D1 = fastCells * cellH, Dtr = trCellsF * cellH, D2 = D2c * cellH;
+      // Моменты, когда каждая карточка проходит через линию — для «цок»
+      const N_CLICKS = N_DECEL * S;   // S щелчков на карточку: на медленном отрезке карточка «тикает» несколько раз
+      const clickAt = Array.from({ length: N_CLICKS }, (_, k) => T1 + TR + T2 * (1 - Math.pow(1 - (k + 1) / N_CLICKS, 1 / E)));
+      let nextClick = 0, slowFired = false, lastT = -999;
+      const t0 = performance.now();
+      strip.style.transition = 'none';
+      const frame = now => {
+        const t = Math.max(0, now - t0);
+        let pos;
+        if (t < T1) pos = v0 * t;
+        else if (t < T1 + TR) {
+          // плавный переход скорости: от «быстро» к «медленно» без рывка (smoothstep по скорости)
+          const u = (t - T1) / TR;
+          pos = D1 + v0 * (t - T1) + (v1 - v0) * TR * (u * u * u - u * u * u * u / 2);
+          if (u > .4) el.classList.remove('moving');
+        }
+        else {
+          if (!slowFired) { slowFired = true; onSlow && onSlow(); }
+          const s = Math.min((t - T1 - TR) / T2, 1);
+          pos = D1 + Dtr + D2 * (1 - Math.pow(1 - s, E));
+          if (s > .3) el.classList.remove('moving');
+        }
+        strip.style.transform = `translateY(${-pos}px)`;
+        while (nextClick < N_CLICKS && t >= clickAt[nextClick]) {
+          // промежуточные щелчки звучат только когда движение уже медленное, иначе выйдет гудение
+          if ((nextClick + 1) % S === 0 || t - lastT > 70) { onTok && onTok(nextClick, N_CLICKS); lastT = t; }
+          nextClick++;
+        }
+        if (t < T1 + TR + T2) requestAnimationFrame(frame);
+        else {
+          el.classList.remove('moving');
+          strip.style.transform = 'translateY(0)';
+          r.cur = final; draw(); resolve();
+        }
+      };
+      requestAnimationFrame(frame);
+    });
+    r.markWin = () => { strip.children[1]?.classList.add('win'); };
+    return r;
+  });
+  const clearWin = () => reels.forEach(r => [...r.strip.children].forEach(c => c.classList.remove('win')));
+
+  /* ---------- Лампочки, таблица выплат, журнал ---------- */
+  for (let i = 0; i < 15; i++) {
+    const b = document.createElement('i');
+    b.className = 'bulb'; b.style.setProperty('--i', i);
+    els.bulbs.appendChild(b);
+  }
+  els.pay.innerHTML = Object.values(TIERS).map(t =>
+    `<span class="g">${t.emoji}</span><span class="n">${t.label}</span><span class="x">${t.label === 'Легендарный вечер' ? 'банк + ×10' : t.mult === 0 ? 'ставка сгорает' : t.mult === 1 ? 'ставка вернётся' : '×' + String(t.mult).replace('.', ',')}</span>`
+  ).join('');
+  function renderLog() {
+    els.log.innerHTML = history.length
+      ? history.map(h => `<li><span class="e">${TIERS[h.t].emoji}</span><span>${h.title}</span></li>`).join('')
+      : '<li class="empty">Пока пусто. Крутите!</li>';
+  }
+  renderLog();
+
+  /* ---------- Табло ---------- */
+  function animateNumber(el, from, to, ms, done) {
+    if (REDUCED || from === to || !ms) { el.textContent = fmt(to); done && done(to); return; }
+    const t0 = performance.now();
+    (function step(t) {
+      const k = Math.min((t - t0) / ms, 1);
+      el.textContent = fmt(from + (to - from) * (1 - Math.pow(1 - k, 3)));
+      if (k < 1) requestAnimationFrame(step); else done && done(to);
+    })(t0);
+  }
+  function setBalance(n, ms = 500) { const from = shown; balance = n; shown = n; animateNumber(els.balance, from, n, ms); }
+  function setWin(n) { if (!n) { els.win.textContent = '0'; return; } animateNumber(els.win, 0, n, 700); }
+  function setBest(n) { best = n; els.best.textContent = fmt(n); }
+  function updateJackpot(ms = 500) { const to = jackpotNow(), from = jpShown; jpShown = to; animateNumber(els.jp, from, to, ms); }
+  function pop(box) { box.classList.remove('pop'); void box.offsetWidth; box.classList.add('pop'); }
+  function setMsg(text, cls = '') { els.msg.textContent = text; els.msg.className = 'msg ' + cls; }
+  function showTicket(plan, tier) {
+    els.ticket.className = 'ticket new t-' + tier;
+    els.stamp.textContent = TIERS[tier].label;
+    els.tTitle.textContent = plan.title;
+    els.tText.textContent = plan.text;
+  }
+  function thinkingTicket() {
+    els.ticket.className = 'ticket';
+    els.stamp.textContent = 'Подбираем вечер…';
+    els.tTitle.textContent = '…';
+    els.tText.textContent = 'Автомат советуется с барабанами.';
+  }
+
+  function refreshControls() {
+    const broke = balance < BETS[0];
+    els.bet.textContent = fmt(bet());
+    els.minus.disabled = spinning || betIdx === 0;
+    els.plus.disabled = spinning || betIdx === BETS.length - 1 || BETS[betIdx + 1] > balance;
+    els.max.disabled = spinning || broke || BETS.filter(b => b <= balance).pop() === bet();
+    els.spin.disabled = spinning;
+    els.spin.textContent = broke ? 'Пополнить монеты' : 'Придумать вечер';
+    els.auto.textContent = auto ? 'Стоп' : 'Авто';
+    els.auto.classList.toggle('on', auto);
+    els.auto.setAttribute('aria-pressed', auto);
+  }
+  function fitBet() { while (betIdx > 0 && bet() > balance) betIdx--; }
+
+  /* ---------- Звук: синтез ---------- */
+  let ac = null;
+  function audio() {
+    if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (ac && ac.state === 'suspended') ac.resume();
+    return ac;
+  }
+  function tone(freq, dur = .15, type = 'sine', vol = .08, delay = 0, slide = 0) {
+    if (muted) return;
+    const a = audio(); if (!a) return;
+    const t = a.currentTime + delay;
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(freq * slide, t + dur);
+    g.gain.setValueAtTime(.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + .01);
+    g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(g); g.connect(a.destination);
+    o.start(t); o.stop(t + dur + .03);
+  }
+  const BELL_PARTIALS = [[1, 1, 1], [2, .45, .7], [2.76, .55, .55], [5.4, .22, .32], [8.93, .1, .18]];
+  function bell(freq, vol = .1, delay = 0, decay = 1.6) {
+    if (muted) return;
+    const a = audio(); if (!a) return;
+    const t = a.currentTime + delay;
+    const master = a.createGain(); master.gain.value = vol; master.connect(a.destination);
+    BELL_PARTIALS.forEach(([ratio, gain, d]) => {
+      const o = a.createOscillator(), g = a.createGain();
+      o.type = 'sine'; o.frequency.value = freq * ratio;
+      g.gain.setValueAtTime(.0001, t);
+      g.gain.exponentialRampToValueAtTime(gain, t + .004);
+      g.gain.exponentialRampToValueAtTime(.0001, t + decay * d);
+      o.connect(g); g.connect(master);
+      o.start(t); o.stop(t + decay * d + .05);
+    });
+  }
+  const clink = (delay = 0) => tone(1800 + Math.random() * 1800, .07, 'triangle', .04, delay);
+  // Гул вращающихся барабанов: шум через полосовой фильтр с дребезгом; с каждым остановленным барабаном стихает
+  function startWhirr() {
+    const none = { stage() {}, stop() {} };
+    if (muted) return none;
+    const a = audio(); if (!a) return none;
+    const nb = a.createBuffer(1, a.sampleRate, a.sampleRate), d = nb.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    const src = a.createBufferSource(); src.buffer = nb; src.loop = true;
+    const bp = a.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 450; bp.Q.value = 1.1;
+    const g = a.createGain(); g.gain.value = 0;
+    const lfo = a.createOscillator(); lfo.type = 'square'; lfo.frequency.value = 17;
+    const lg = a.createGain(); lg.gain.value = .035;
+    const hum = a.createOscillator(); hum.type = 'sawtooth'; hum.frequency.value = 78;
+    const hg = a.createGain(); hg.gain.value = .018;
+    lfo.connect(lg); lg.connect(g.gain);
+    src.connect(bp); bp.connect(g); hum.connect(hg); hg.connect(g); g.connect(a.destination);
+    const t = a.currentTime;
+    g.gain.linearRampToValueAtTime(.085, t + .2);
+    bp.frequency.linearRampToValueAtTime(1100, t + 1.3);
+    hum.frequency.linearRampToValueAtTime(130, t + 1.3);
+    src.start(); lfo.start(); hum.start();
+    return {
+      stage(n) {
+        const now = a.currentTime;
+        g.gain.setTargetAtTime(.085 * (1 - n * .3), now, .05);
+        bp.frequency.setTargetAtTime(1100 - n * 260, now, .1);
+        hum.frequency.setTargetAtTime(130 - n * 22, now, .1);
+      },
+      stop() {
+        const now = a.currentTime;
+        g.gain.setTargetAtTime(0, now, .06); lg.gain.setTargetAtTime(0, now, .06); hg.gain.setTargetAtTime(0, now, .06);
+        setTimeout(() => { try { src.stop(); lfo.stop(); hum.stop(); } catch (e) {} }, 500);
+      },
+    };
+  }
+  // Звук вращения: громкий гул мотора + частые щелчки трещотки, которые замедляются по мере остановки барабанов
+  function startReelSound() {
+    const none = { stage() {}, stop() {} };
+    if (muted) return none;
+    const a = audio(); if (!a) return none;
+    const m = a.createGain(); m.connect(a.destination);
+    const t0 = a.currentTime;
+    m.gain.setValueAtTime(0, t0); m.gain.linearRampToValueAtTime(1, t0 + .12);
+    const nb = a.createBuffer(1, a.sampleRate, a.sampleRate), d = nb.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    const src = a.createBufferSource(); src.buffer = nb; src.loop = true;
+    const bp = a.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 600; bp.Q.value = .7;
+    const ng = a.createGain(); ng.gain.value = .85;
+    const lfo = a.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 24;
+    const lg = a.createGain(); lg.gain.value = .3;
+    lfo.connect(lg); lg.connect(ng.gain);
+    src.connect(bp); bp.connect(ng); ng.connect(m);
+    const hum = a.createOscillator(); hum.type = 'sawtooth';
+    const lp = a.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 500;
+    const hg = a.createGain(); hg.gain.value = .22;
+    hum.connect(lp); lp.connect(hg); hg.connect(m);
+    hum.frequency.setValueAtTime(85, t0); hum.frequency.linearRampToValueAtTime(150, t0 + 2.6);
+    bp.frequency.setValueAtTime(600, t0); bp.frequency.linearRampToValueAtTime(1300, t0 + 2.6);
+    src.start(); lfo.start(); hum.start();
+    let step = 62, timer = 0, alive = true;
+    const click = () => {
+      if (!alive) return;
+      tone(1500 + Math.random() * 300, .03, 'square', .16);
+      timer = setTimeout(click, step);
+    };
+    click();
+    return {
+      stage(n) {
+        const now = a.currentTime;
+        m.gain.setTargetAtTime(Math.max(.35, 1 - n * .3), now, .05);
+        bp.frequency.setTargetAtTime(1300 - n * 300, now, .1);
+        hum.frequency.setTargetAtTime(150 - n * 25, now, .1);
+        step = 62 + n * 32;
+      },
+      stop() {
+        alive = false; clearTimeout(timer);
+        const now = a.currentTime;
+        m.gain.cancelScheduledValues(now); m.gain.setValueAtTime(m.gain.value, now); m.gain.linearRampToValueAtTime(0, now + .12);
+        setTimeout(() => { try { src.stop(); lfo.stop(); hum.stop(); } catch (e) {} }, 300);
+      },
+    };
+  }
+  // Шелест карточек: буфер шума и взмах бумажной карточки (высокие частоты, никакого низкого гула)
+  let _nb = null;
+  function noiseBuf(a) {
+    if (!_nb || _nb.sampleRate !== a.sampleRate) {
+      _nb = a.createBuffer(1, a.sampleRate, a.sampleRate);
+      const d = _nb.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    return _nb;
+  }
+  function flap(vol = .2, dur = .1, freq = 3600) {
+    if (muted) return;
+    const a = audio(); if (!a) return;
+    const t = a.currentTime;
+    const src = a.createBufferSource(); src.buffer = noiseBuf(a);
+    const bp = a.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = .8;
+    bp.frequency.setValueAtTime(freq * 1.4, t);
+    bp.frequency.exponentialRampToValueAtTime(freq * .7, t + dur);
+    const g = a.createGain();
+    g.gain.setValueAtTime(.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol * 3, t + .006);
+    g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    src.connect(bp); bp.connect(g); g.connect(a.destination);
+    src.start(t, Math.random() * .6, dur + .05);
+  }
+  // Тихий высокий «шуршание» быстрых карточек. Когда второй барабан начинает тормозить, фон уходит в ноль,
+  // чтобы отчётливо было слышно отдельный шелест карточек последних двух барабанов.
+  function startRiffle() {
+    const none = { stage() {}, stop() {} };
+    if (muted) return none;
+    const a = audio(); if (!a) return none;
+    const m = a.createGain(); m.connect(a.destination);
+    const t0 = a.currentTime;
+    m.gain.setValueAtTime(0, t0); m.gain.linearRampToValueAtTime(1.8, t0 + .15);
+    const src = a.createBufferSource(); src.buffer = noiseBuf(a); src.loop = true;
+    const hp = a.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 2600;
+    const bp = a.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 5200; bp.Q.value = .5;
+    const ng = a.createGain(); ng.gain.value = .22;
+    const lfo = a.createOscillator(); lfo.type = 'sawtooth'; lfo.frequency.value = 21;
+    const lg = a.createGain(); lg.gain.value = .16;
+    lfo.connect(lg); lg.connect(ng.gain);
+    src.connect(hp); hp.connect(bp); bp.connect(ng); ng.connect(m);
+    src.start(); lfo.start();
+    return {
+      stage(n) { m.gain.setTargetAtTime(n >= 2 ? 0 : .9, a.currentTime, .12); },
+      stop() {
+        const now = a.currentTime;
+        m.gain.cancelScheduledValues(now); m.gain.setValueAtTime(m.gain.value, now); m.gain.linearRampToValueAtTime(0, now + .12);
+        setTimeout(() => { try { src.stop(); lfo.stop(); } catch (e) {} }, 300);
+      },
+    };
+  }
+  const sfx = {
+    lever: () => tone(200, .2, 'square', .05, 0, .45),
+    stop: i => tone(210 + i * 45, .1, 'triangle', .13),
+    // «цок»: карточка встаёт на место; у каждого барабана свой тон, последний щелчок глуше и тяжелее
+    tok: (reel, idx, n, sub = 1) => {
+      // последние два барабана: отчётливый шелест карточек, к концу дольше и громче
+      if (reel >= 1) {
+        const qq = idx / (n - 1), boundary = (idx + 1) % sub === 0;
+        flap(boundary ? .2 + .32 * qq : .08 + .1 * qq, (boundary ? .08 : .05) + .17 * qq, 3300 + reel * 450 - qq * 700);
+      }
+      const q = idx / (n - 1);                       // 0 → 1: щелчки становятся громче и ниже к концу
+      const f = 520 + reel * 75 - q * 130;
+      tone(f, .05 + .05 * q, 'triangle', (.1 + .22 * q) * (reel >= 1 ? .55 : 1), 0, .55);
+      tone(1900, .015, 'square', .03 + .07 * q);
+      if (idx === n - 1) tone(170, .2, 'sine', .35, 0, .6);
+    },
+    sad: () => { [392, 370, 349].forEach((f, i) => tone(f, .35, 'sawtooth', .05, i * .34)); tone(330, 1, 'sawtooth', .05, 1.02, .8); },
+    ok: () => { bell(1175, .07); bell(1568, .06, .14, 1); },
+    good: () => { bell(1318, .09); [523, 659, 784, 1047].forEach((f, i) => tone(f, .2, 'triangle', .09, i * .09)); for (let i = 0; i < 8; i++) clink(.3 + i * .06); },
+    epic: () => {
+      bell(1568, .11); bell(1976, .11, .2); bell(1568, .11, .4); bell(2093, .1, .6, 2.2);
+      [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, .22, 'triangle', .1, i * .08));
+      for (let i = 0; i < 16; i++) clink(.4 + i * .07);
+    },
+    jackpot: () => {
+      for (let i = 0; i < 6; i++) tone(i % 2 ? 1000 : 600, .4, 'sawtooth', .03, i * .4, i % 2 ? .6 : 1.67);
+      for (let i = 0; i < 18; i++) bell(i % 2 ? 1760 : 1397, .09, 1.0 + i * .24, 1.3);
+      [523, 659, 784, 1047, 1319, 1568, 2093].forEach((f, i) => tone(f, .3, 'triangle', .09, 1.0 + i * .12));
+      for (let i = 0; i < 70; i++) clink(1.3 + Math.random() * 4.5);
+    },
+    win2: () => { bell(1568, .1); bell(2093, .1, .15); },
+  };
+  els.sound.addEventListener('click', () => {
+    muted = !muted;
+    if (muted) stopCurrent();
+    applyMusicGain();
+    els.sound.textContent = muted ? '🔇' : '🔊';
+    els.sound.setAttribute('aria-label', muted ? 'Включить звук' : 'Выключить звук');
+  });
+
+  /* ---------- Звук: свои mp3 (хранятся в IndexedDB браузера) ---------- */
+  const snd = { lose: { raw: null, buf: null, name: '' }, win: { raw: null, buf: null, name: '' }, bg: { raw: null, buf: null, name: '' } };
+  const WIN_MAX = 5, WIN_FADE = 1.5;
+  const idb = {
+    open() {
+      return new Promise((res, rej) => {
+        if (!window.indexedDB) return rej(new Error('no idb'));
+        const r = indexedDB.open('fortuna-evening-sounds', 1);
+        r.onupgradeneeded = () => r.result.createObjectStore('s');
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      });
+    },
+    async get(k) { const db = await this.open(); return new Promise((res, rej) => { const q = db.transaction('s').objectStore('s').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); },
+    async set(k, v) { const db = await this.open(); return new Promise((res, rej) => { const tx = db.transaction('s', 'readwrite'); tx.objectStore('s').put(v, k); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); }); },
+  };
+  const status = { lose: $('sLose'), win: $('sWin'), bg: $('sBg') };
+  const fallbackText = { lose: 'Файл не выбран. Пока играет встроенный грустный звук.', win: 'Файл не выбран. Пока играет встроенный колокольчик.', bg: 'Файл не выбран. Выберите fon.mp3, и музыка заиграет по кругу.' };
+  function setStatus(key, text, ok) { status[key].textContent = text; status[key].className = ok ? 'ok' : ''; }
+  function describe(key) {
+    const s = snd[key];
+    if (!s.raw) return setStatus(key, fallbackText[key], false);
+    const d = s.buf ? ` · ${s.buf.duration.toFixed(1).replace('.', ',')} с` : '';
+    const cut = key === 'win' && s.buf && s.buf.duration > WIN_MAX ? ` · будет обрезан до ${WIN_MAX} с` : '';
+    setStatus(key, `Загружен: ${s.name}${d}${cut}`, true);
+  }
+  async function decode(key) {
+    const s = snd[key];
+    if (s.buf || !s.raw) return s.buf;
+    const a = audio(); if (!a) return null;
+    try { s.buf = await a.decodeAudioData(s.raw.slice(0)); }
+    catch (e) { s.buf = null; setStatus(key, 'Не удалось прочитать файл. Попробуйте mp3 или wav.', false); }
+    return s.buf;
+  }
+  let current = null;
+  function stopCurrent() {
+    if (!current || !ac) return;
+    const { g, src } = current; current = null;
+    try { g.gain.cancelScheduledValues(ac.currentTime); g.gain.setValueAtTime(g.gain.value, ac.currentTime); g.gain.linearRampToValueAtTime(0, ac.currentTime + .15); src.stop(ac.currentTime + .2); } catch (e) {}
+  }
+  async function playSound(key, { max = Infinity, fade = 0, vol = 1 } = {}) {
+    if (muted) return 0;
+    const buf = await decode(key);
+    if (!buf) return 0;
+    const a = audio();
+    stopCurrent();
+    const dur = Math.min(buf.duration, max);
+    const t = a.currentTime + .03;
+    const src = a.createBufferSource(), g = a.createGain();
+    src.buffer = buf;
+    g.gain.setValueAtTime(vol, t);
+    if (fade > 0) {
+      const f = Math.min(fade, dur);
+      g.gain.setValueAtTime(vol, t + dur - f);
+      g.gain.linearRampToValueAtTime(0, t + dur);
+    }
+    src.connect(g); g.connect(a.destination);
+    src.start(t, 0, dur);
+    current = { src, g };
+    duck(dur);
+    src.onended = () => { if (current && current.src === src) current = null; };
+    return dur;
+  }
+  const playLose = () => playSound('lose', { vol: 1 });
+  const playWin = () => playSound('win', { max: WIN_MAX, fade: WIN_FADE, vol: 1 });
+
+  async function loadStored() {
+    for (const key of ['lose', 'win', 'bg']) {
+      try {
+        const v = await idb.get(key);
+        if (v && v.data) { snd[key].raw = v.data; snd[key].name = v.name; describe(key); }
+      } catch (e) {}
+    }
+    if (!(snd.lose.raw && snd.win.raw && snd.bg.raw)) $('soundsBox').open = true;
+  }
+  function bindFile(key, input) {
+    input.addEventListener('change', async () => {
+      const f = input.files && input.files[0];
+      if (!f) return;
+      try {
+        const raw = await f.arrayBuffer();
+        snd[key] = { raw, buf: null, name: f.name };
+        try { await idb.set(key, { name: f.name, data: raw }); } catch (e) {}
+        setStatus(key, 'Читаю файл…', false);
+        if (key === 'bg' && music) { try { music.src.stop(); } catch (e) {} music = null; }
+        await decode(key);
+        describe(key);
+        if (key === 'bg' && snd.bg.buf) { musicOn = true; saveMusicPrefs(); startMusic(); refreshMusicUI(); }
+      } catch (e) { setStatus(key, 'Не удалось открыть файл.', false); }
+      input.value = '';
+    });
+  }
+  bindFile('lose', $('fLose')); bindFile('win', $('fWin')); bindFile('bg', $('fBg'));
+  $('tLose').addEventListener('click', async () => { audio(); if (!(await playLose())) sfx.sad(); });
+  $('tWin').addEventListener('click', async () => { audio(); if (!(await playWin())) sfx.good(); });
+  /* ---------- Фоновая музыка ---------- */
+  const MUSIC_KEY = 'fortuna-evening-music';
+  let music = null, musicOn = true, musicVol = .35, ducks = 0;
+  try { const o = JSON.parse(localStorage.getItem(MUSIC_KEY)); if (o) { if (Number.isFinite(o.vol)) musicVol = Math.min(Math.max(o.vol, 0), 1); musicOn = o.on !== false; } } catch (e) {}
+  const saveMusicPrefs = () => { try { localStorage.setItem(MUSIC_KEY, JSON.stringify({ vol: musicVol, on: musicOn })); } catch (e) {} };
+  const musicBtn = $('music'), tBg = $('tBg'), vBg = $('vBg');
+  vBg.value = Math.round(musicVol * 100);
+  const musicTarget = () => (muted || !musicOn) ? 0 : musicVol * .5 * (ducks > 0 ? .25 : 1);
+  function applyMusicGain() {
+    if (!music || !ac) return;
+    music.g.gain.cancelScheduledValues(ac.currentTime);
+    music.g.gain.setTargetAtTime(musicTarget(), ac.currentTime, .15);
+  }
+  function refreshMusicUI() {
+    musicBtn.classList.toggle('off', !musicOn || !snd.bg.raw);
+    musicBtn.setAttribute('aria-pressed', musicOn && !!snd.bg.raw);
+    musicBtn.setAttribute('aria-label', musicOn ? 'Выключить музыку' : 'Включить музыку');
+    tBg.textContent = musicOn && snd.bg.raw ? '⏸' : '▶';
+  }
+  function duck(sec) {
+    ducks++; applyMusicGain();
+    setTimeout(() => { ducks = Math.max(0, ducks - 1); applyMusicGain(); }, sec * 1000 + 300);
+  }
+  async function startMusic() {
+    if (music || !snd.bg.raw) return;
+    const buf = await decode('bg');
+    if (!buf || music) return;
+    const a = audio(); if (!a) return;
+    const src = a.createBufferSource(), g = a.createGain();
+    src.buffer = buf; src.loop = true;
+    g.gain.value = 0;
+    src.connect(g); g.connect(a.destination);
+    src.start();
+    music = { src, g };
+    g.gain.setTargetAtTime(musicTarget(), a.currentTime, .8);
+  }
+  function toggleMusic() {
+    if (!snd.bg.raw) {
+      const box = $('soundsBox'); box.open = true; box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    musicOn = !musicOn; saveMusicPrefs();
+    if (musicOn) startMusic();
+    applyMusicGain(); refreshMusicUI();
+  }
+  musicBtn.addEventListener('click', toggleMusic);
+  tBg.addEventListener('click', toggleMusic);
+  vBg.addEventListener('input', () => { musicVol = vBg.value / 100; saveMusicPrefs(); applyMusicGain(); });
+  // Браузеры разрешают звук только после касания: запускаем музыку с первого действия
+  ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, () => { if (musicOn && snd.bg.raw && !music) startMusic(); }, { passive: true }));
+  document.addEventListener('visibilitychange', () => { if (!ac) return; if (document.hidden) ac.suspend(); else ac.resume(); });
+  refreshMusicUI();
+
+  // Один выбор сразу трёх файлов: куда какой, определяем по имени
+  $('fAll').addEventListener('change', async e => {
+    const files = [...e.target.files];
+    if (!files.length) return;
+    const info = $('sAll'), got = [], skipped = [];
+    info.textContent = 'Читаю файлы…';
+    for (const f of files) {
+      const n = f.name.toLowerCase();
+      const key = n.includes('123456789') ? 'lose' : (n.includes('money') || n.includes('jackpot')) ? 'win' : n.includes('fon') ? 'bg' : null;
+      if (!key) { skipped.push(f.name); continue; }
+      try {
+        const raw = await f.arrayBuffer();
+        snd[key] = { raw, buf: null, name: f.name };
+        try { await idb.set(key, { name: f.name, data: raw }); } catch (err) {}
+        if (key === 'bg' && music) { try { music.src.stop(); } catch (err) {} music = null; }
+        await decode(key); describe(key); got.push(f.name);
+      } catch (err) { skipped.push(f.name); }
+    }
+    info.textContent = (got.length ? 'Загружено: ' + got.join(', ') + '. ' : '') + (skipped.length ? 'Не распознал по имени: ' + skipped.join(', ') + '. Выберите их кнопками ниже.' : '');
+    if (snd.bg.buf) { musicOn = true; saveMusicPrefs(); startMusic(); }
+    refreshMusicUI();
+    e.target.value = '';
+  });
+
+  /* ---------- Приветственное окно ---------- */
+  const welcome = $('welcome'), wGo = $('wGo'), wNote = $('wNote');
+  let welcomed = false;
+  function updateWelcomeNote() {}
+  function closeWelcome() {
+    if (welcomed) return;
+    welcomed = true;
+    audio();                                         // нажатие — единственный момент, когда браузер разрешает звук
+    if (musicOn && snd.bg.raw) startMusic();
+    welcome.classList.add('out');
+    setTimeout(() => { welcome.hidden = true; }, 380);
+  }
+  wGo.addEventListener('click', closeWelcome);
+  wGo.focus({ preventScroll: true });
+  loadStored().then(() => { refreshMusicUI(); updateWelcomeNote(); if (welcomed && musicOn) startMusic(); });
+
+  /* ---------- Монеты ---------- */
+  const cv = $('fx'), cx = cv.getContext('2d');
+  let parts = [], raf = 0;
+  function resize() {
+    const d = window.devicePixelRatio || 1;
+    cv.width = innerWidth * d; cv.height = innerHeight * d;
+    cx.setTransform(d, 0, 0, d, 0, 0);
+  }
+  resize(); addEventListener('resize', resize);
+  function burst(n, x, y) {
+    n = REDUCED ? Math.ceil(n / 4) : n;
+    for (let i = 0; i < n; i++) {
+      const a = -Math.PI / 2 + (Math.random() - .5) * 2.2, p = 7 + Math.random() * 10;
+      parts.push({ x, y, vx: Math.cos(a) * p, vy: Math.sin(a) * p, r: 6 + Math.random() * 6, ph: Math.random() * 6, c: Math.random() < .8 ? 0 : 1 });
+    }
+    loop();
+  }
+  function rain(n) {
+    n = REDUCED ? Math.ceil(n / 4) : n;
+    for (let i = 0; i < n; i++) {
+      parts.push({ x: Math.random() * innerWidth, y: -20 - Math.random() * 300, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 4, r: 7 + Math.random() * 7, ph: Math.random() * 6, c: Math.random() < .85 ? 0 : 1 });
+    }
+    loop();
+  }
+  function loop() {
+    if (raf) return;
+    const tick = () => {
+      cx.clearRect(0, 0, innerWidth, innerHeight);
+      parts = parts.filter(p => p.y < innerHeight + 30);
+      for (const p of parts) {
+        p.vy += .34; p.x += p.vx; p.y += p.vy; p.vx *= .995; p.ph += .22;
+        const w = Math.max(1.5, Math.abs(Math.cos(p.ph)) * p.r);
+        if (p.c === 0) {
+          cx.beginPath(); cx.ellipse(p.x, p.y, w, p.r, 0, 0, 6.3);
+          cx.fillStyle = '#f2c85b'; cx.fill();
+          cx.lineWidth = 1.5; cx.strokeStyle = '#a97420'; cx.stroke();
+          cx.beginPath(); cx.ellipse(p.x, p.y, w * .55, p.r * .55, 0, 0, 6.3);
+          cx.strokeStyle = 'rgba(169,116,32,.7)'; cx.stroke();
+        } else { cx.fillStyle = '#e2432f'; cx.fillRect(p.x - w / 2, p.y - p.r / 2, w, p.r); }
+      }
+      if (parts.length) raf = requestAnimationFrame(tick);
+      else { raf = 0; cx.clearRect(0, 0, innerWidth, innerHeight); }
+    };
+    raf = requestAnimationFrame(tick);
+  }
+  const windowCenter = () => { const r = els.reels.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
+
+  /* ---------- Игра ---------- */
+  let jpTimer = 0, rantTimer = 0;
+  const buzz = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };   // виброотклик на телефоне (там, где поддерживается)
+  function pullLever() {
+    els.lever.classList.remove('release');
+    els.lever.classList.add('pulled');
+    setTimeout(() => { els.lever.classList.add('release'); els.lever.classList.remove('pulled'); }, 380);
+  }
+  function stopAuto() { auto = false; clearTimeout(autoTimer); refreshControls(); }
+
+  function pickTier() {
+    let r = Math.random();
+    for (const [k, t] of Object.entries(TIERS)) { if ((r -= t.w) < 0) return k; }
+    return 'ok';
+  }
+  function pickPlan(tier) {
+    const pool_ = PLANS.filter(p => p.t === tier && p !== lastPlan);
+    return rnd(pool_.length ? pool_ : PLANS.filter(p => p.t === tier));
+  }
+
+  function hideRant() { clearTimeout(rantTimer); els.rant.classList.remove('show'); els.machine.classList.remove('angry'); }
+  function showRant(ms) {
+    els.rant.classList.add('show');
+    els.machine.classList.add('angry');
+    els.machine.classList.remove('rattle'); void els.machine.offsetWidth; els.machine.classList.add('rattle');
+    clearTimeout(rantTimer);
+    rantTimer = setTimeout(hideRant, ms);
+  }
+  els.rant.addEventListener('click', hideRant);
+
+  async function spin() {
+    if (spinning) return;
+    if (balance < BETS[0]) {
+      stopAuto(); closeGamble(); hideRant();
+      setBalance(START_BALANCE, 800); betIdx = 0; save();
+      setMsg('Монеты пополнены. Вперёд, за вечером!', 'win'); refreshControls(); updateJackpot(); return;
+    }
+    fitBet();
+    audio(); decode('lose'); decode('win');
+    stopCurrent(); closeGamble(); hideRant();
+    spinning = true;
+    const b = bet();
+    setBalance(balance - b, 300);
+    pool += Math.round(b * JP_RATE);
+    updateJackpot(400);
+    setWin(0); clearWin();
+    setMsg('Барабаны крутятся…');
+    thinkingTicket();
+    els.machine.classList.remove('flash');
+    els.machine.classList.add('spinning');
+    pullLever(); buzz(25);
+    refreshControls();
+
+    // Сначала решаем, какой будет вечер, потом показываем его иконки
+    const tier = pickTier();
+    const plan = pickPlan(tier);
+    lastPlan = plan;
+    let icons = plan.i.slice();
+    let nearMiss = false;
+    if (tier !== 'jackpot' && tier !== 'ok' && Math.random() < (tier === 'bad' ? .2 : .14)) {
+      nearMiss = true;
+      icons = ['💎', '💎', plan.i[2] === '💎' ? '🎲' : plan.i[2]];
+    }
+    const tease = tier === 'jackpot' || nearMiss;
+    const k = REDUCED ? .5 : 1;
+    const NDS = REDUCED ? [6, 8, 12] : [18, 28, 45];      // сколько карточек в докрутке
+    const EASES = [3, 4, 4], SUBS = [1, 4, 6], MSC = [50, 50, 50], MSL = [50, 80, 130], TRS = [0, 2500, 3500];   // MSC — мс на карточку на быстрой фазе: чем больше, тем медленнее барабан крутится                              // чем больше, тем медленнее последние карточки
+    const durs = [2500, 3600, 4500 + (tease ? 1500 : 0)].map(d => d * k);
+    const tick = 0;
+    const whirr = startRiffle();
+    let heart = 0, teaseTimer = 0;
+    if (tease) {
+      teaseTimer = setTimeout(() => {
+        els.frame.classList.add('tease');
+        setMsg('Неужели…', 'tease');
+        tone(300, 26, 'sine', .03, 0, 4);
+        const beat = () => { tone(70, .14, 'sine', .28); tone(70, .14, 'sine', .22, .17); };
+        let iv = 720;
+        const loopBeat = () => { beat(); iv = Math.max(300, iv - 12); heart = setTimeout(loopBeat, iv); };   // сердце бьётся всё чаще
+        loopBeat();
+      }, durs[1] + TRS[1] + MSL[1] * EASES[1] * (NDS[1] + .5) + 60);
+    }
+    let slowCount = 0;
+    await Promise.all(reels.map((r, i) => r.spin(icons[i], durs[i], (idx, n) => sfx.tok(i, idx, n, SUBS[i]), () => whirr.stage(++slowCount), NDS[i], EASES[i], SUBS[i], MSC[i], MSL[i], TRS[i]).then(() => { sfx.stop(i); buzz(30); })));
+    whirr.stop();
+    clearInterval(tick); clearInterval(heart); clearTimeout(teaseTimer);
+    els.frame.classList.remove('tease');
+    els.machine.classList.remove('spinning');
+    settle(tier, plan, b);
+  }
+
+  async function settle(tier, plan, b) {
+    spinning = false;
+    let win = tier === 'jackpot' ? b * JP_MULT + pool : Math.round(TIERS[tier].mult * b);
+    showTicket(plan, tier);
+    buzz(tier === 'bad' ? [180, 60, 180] : tier === 'jackpot' ? [120, 60, 120, 60, 120, 60, 400] : tier === 'ok' ? 40 : [70, 40, 70]);
+    history.unshift({ t: tier, title: plan.title }); history = history.slice(0, 6); renderLog();
+
+    let delay = 650;
+    if (win > 0) {
+      setBalance(balance + win, 900);
+      setWin(win);
+      pop(els.balBox); pop(els.winBox);
+      if (win > best) { setBest(win); pop(els.bestBox); }
+    }
+    const [cxp, cyp] = windowCenter();
+
+    if (tier === 'bad') {
+      setMsg('Не повезло. Ставка сгорела', 'lose');
+      const dur = await playLose();
+      if (!dur) sfx.sad();
+      const ms = dur ? dur * 1000 + 500 : 3000;
+      showRant(ms);
+      delay = ms + 400;
+    } else if (tier === 'ok') {
+      sfx.ok();
+      setMsg('Нормальный вечер. Ставка вернулась', 'win');
+      delay = 900;
+    } else {
+      reels[0].markWin(); reels[1].markWin(); reels[2].markWin();
+      els.machine.classList.add('flash');
+      delay = 2300;
+      const played = await playWin();            // свой звук: до 5 с, затухание в конце
+      if (tier === 'jackpot') {
+        pool = JP_SEED; updateJackpot(1500);
+        setMsg('ЛЕГЕНДАРНЫЙ ВЕЧЕР!', 'win');
+        if (!played) sfx.jackpot(); else for (let i = 0; i < 40; i++) clink(.3 + Math.random() * 3.5);
+        showJackpot(win, plan);
+      } else if (tier === 'epic') {
+        setMsg(`Эпичный вечер! +${fmt(win)}`, 'win');
+        if (!played) sfx.epic();
+        burst(130, cxp, cyp);
+      } else {
+        setMsg(`Классный вечер! +${fmt(win)}`, 'win');
+        if (!played) sfx.good();
+        burst(70, cxp, cyp);
+      }
+    }
+    fitBet(); save(); refreshControls();
+
+    if (balance < BETS[0]) {
+      stopAuto();
+      setTimeout(() => { if (!spinning) setMsg('Монеты закончились. Пополните и играйте дальше', 'lose'); }, delay);
+      return;
+    }
+    if (auto) {
+      if (tier === 'jackpot' || tier === 'epic') stopAuto();
+      else autoTimer = setTimeout(spin, delay);
+    } else if (tier === 'good' || tier === 'epic') {
+      openGamble(win);
+    }
+  }
+
+  /* ---------- Риск ---------- */
+  function openGamble(win) {
+    gamble = { win, round: 0 };
+    els.gAmt.textContent = fmt(win * 2);
+    els.gCard.className = 'g-card back'; els.gCard.textContent = '?';
+    els.gRed.disabled = els.gBlack.disabled = false;
+    els.gamble.hidden = false;
+  }
+  function closeGamble() { gamble = null; els.gamble.hidden = true; }
+  function guess(color) {
+    if (!gamble || spinning) return;
+    els.gRed.disabled = els.gBlack.disabled = true;
+    const actual = Math.random() < .5 ? 'red' : 'black';
+    const suit = actual === 'red' ? rnd(['♥', '♦']) : rnd(['♠', '♣']);
+    els.gCard.className = 'g-card back flip';
+    setTimeout(() => { els.gCard.className = 'g-card flip ' + (actual === 'red' ? 'red' : ''); els.gCard.textContent = suit; }, 240);
+    setTimeout(() => {
+      if (!gamble) return;
+      const g = gamble;
+      if (color === actual) {
+        setBalance(balance + g.win, 600);
+        g.win *= 2; g.round++;
+        setWin(g.win); pop(els.balBox); pop(els.winBox);
+        if (g.win > best) { setBest(g.win); pop(els.bestBox); }
+        sfx.win2(); const [cxp, cyp] = windowCenter(); burst(36, cxp, cyp);
+        setMsg(`Угадали! Выигрыш ${fmt(g.win)}`, 'win');
+        save(); refreshControls();
+        if (g.round >= 3) setTimeout(closeGamble, 900);
+        else { els.gAmt.textContent = fmt(g.win * 2); els.gRed.disabled = els.gBlack.disabled = false; }
+      } else {
+        setBalance(balance - g.win, 600);
+        setWin(0);
+        sfx.sad();
+        setMsg('Не угадали. Выигрыш сгорел', 'lose');
+        closeGamble(); fitBet(); save(); refreshControls();
+        if (balance < BETS[0]) setTimeout(() => { if (!spinning) setMsg('Монеты закончились. Пополните и играйте дальше', 'lose'); }, 1400);
+      }
+    }, 800);
+  }
+  els.gRed.addEventListener('click', () => guess('red'));
+  els.gBlack.addEventListener('click', () => guess('black'));
+  els.gTake.addEventListener('click', () => { if (!gamble) return; const w = gamble.win; closeGamble(); setMsg(`Выигрыш ${fmt(w)} забран`, 'win'); });
+
+  /* ---------- Джекпот ---------- */
+  function showJackpot(win, plan) {
+    clearTimeout(jpTimer);
+    els.jpPlan.textContent = plan.title;
+    els.jpText.textContent = plan.text;
+    els.jpAmount.textContent = '0';
+    animateNumber(els.jpAmount, 0, win, 2800);
+    els.jpOverlay.classList.add('show');
+    els.machine.classList.add('shake');
+    setTimeout(() => els.machine.classList.remove('shake'), 3400);
+    rain(160);
+    let waves = 0;
+    const iv = setInterval(() => { rain(70); if (++waves >= 6) clearInterval(iv); }, 700);
+    jpTimer = setTimeout(hideJackpot, 9000);
+  }
+  function hideJackpot() { clearTimeout(jpTimer); els.jpOverlay.classList.remove('show'); }
+  els.jpOverlay.addEventListener('click', hideJackpot);
+
+  /* ---------- События ---------- */
+  els.spin.addEventListener('click', () => { stopAuto(); spin(); });
+  els.knob.addEventListener('click', () => { stopAuto(); spin(); });
+  els.auto.addEventListener('click', () => {
+    if (auto) { stopAuto(); return; }
+    if (balance < BETS[0]) return;
+    auto = true; refreshControls(); closeGamble();
+    if (!spinning) spin();
+  });
+  els.minus.addEventListener('click', () => { if (betIdx > 0) { betIdx--; save(); refreshControls(); updateJackpot(250); } });
+  els.plus.addEventListener('click', () => { if (BETS[betIdx + 1] <= balance) { betIdx++; save(); refreshControls(); updateJackpot(250); } });
+  els.max.addEventListener('click', () => {
+    const ok = BETS.filter(b => b <= balance);
+    if (ok.length) { betIdx = BETS.indexOf(ok[ok.length - 1]); save(); refreshControls(); updateJackpot(250); }
+  });
+  document.addEventListener('keydown', e => {
+    if ((e.code === 'Space' || e.code === 'Enter') && !e.target.closest('button, summary, input, label')) {
+      e.preventDefault();
+      if (els.jpOverlay.classList.contains('show')) hideJackpot(); else { stopAuto(); spin(); }
+    }
+  });
+
+  els.balance.textContent = fmt(balance);
+  els.best.textContent = fmt(best);
+  fitBet();
+  refreshControls();
+  jpShown = jackpotNow();
+  els.jp.textContent = fmt(jpShown);
+  if (balance < BETS[0]) setMsg('Монеты закончились. Пополните и играйте дальше', 'lose');
+})();
+</script>
+</body>
+</html>
