@@ -205,9 +205,6 @@
     box-shadow: 0 5px 8px rgba(0,0,0,.55), inset 0 -3px 5px rgba(0,0,0,.3);
     cursor: pointer; transition: top .24s ease-in;
   }
-  .lever, .lever .knob { touch-action: none; }
-  .lever .knob { cursor: grab; }
-  .lever.dragging .knob, .lever.dragging .stick { transition: none; cursor: grabbing; }
   .lever.pulled .knob { top: 112px; }
   .lever.pulled .stick { height: 96px; }
   .lever.release .knob, .lever.release .stick { transition: top .35s cubic-bezier(.3,1.6,.5,1), height .35s cubic-bezier(.3,1.6,.5,1); }
@@ -1094,7 +1091,7 @@
   /* ---------- Фоновая музыка ---------- */
   const MUSIC_KEY = 'fortuna-evening-music';
   let music = false, musicOn = true, ducks = 0, gainIv = 0;
-  const musicVol = .175;   // было .35, теперь вдвое тише
+  const musicVol = .35;
   try { const o = JSON.parse(localStorage.getItem(MUSIC_KEY)); if (o) musicOn = o.on !== false; } catch (e) {}
   const saveMusicPrefs = () => { try { localStorage.setItem(MUSIC_KEY, JSON.stringify({ vol: musicVol, on: musicOn })); } catch (e) {} };
   const musicBtn = $('music');
@@ -1417,53 +1414,7 @@
 
   /* ---------- События ---------- */
   els.spin.addEventListener('click', () => { stopAuto(); spin(); });
-  // Рычаг можно потянуть вниз (мышью или пальцем) или просто нажать
-  (function leverDrag() {
-    const knob = els.knob, lever = els.lever, stick = lever.querySelector('.stick');
-    const TOP0 = 6, STICK0 = 18, TRAVEL = 106, STICK_TRAVEL = 78, TRIGGER = 62;
-    let startY = 0, dy = 0, active = false, pid = null, suppressClick = false, armed = false;
-    const setPull = d => {
-      knob.style.top = (TOP0 + d) + 'px';
-      stick.style.height = (STICK0 + d * STICK_TRAVEL / TRAVEL) + 'px';
-    };
-    const clearPull = () => { knob.style.top = ''; stick.style.height = ''; };
-    knob.addEventListener('pointerdown', e => {
-      if (spinning || (e.pointerType === 'mouse' && e.button !== 0)) return;
-      active = true; armed = false; pid = e.pointerId; startY = e.clientY; dy = 0;
-      try { knob.setPointerCapture(pid); } catch (err) {}
-      lever.classList.remove('release');
-      lever.classList.add('dragging');
-    });
-    knob.addEventListener('pointermove', e => {
-      if (!active || e.pointerId !== pid) return;
-      dy = Math.min(Math.max(e.clientY - startY, 0), TRAVEL);
-      setPull(dy);
-      if (!armed && dy >= TRIGGER) { armed = true; buzz(12); }
-      else if (armed && dy < TRIGGER) armed = false;
-    });
-    const end = (e, cancelled) => {
-      if (!active || e.pointerId !== pid) return;
-      active = false;
-      try { knob.releasePointerCapture(pid); } catch (err) {}
-      lever.classList.remove('dragging');
-      if (dy > 6) suppressClick = true;          // это было перетаскивание, а не клик
-      const fire = !cancelled && dy >= TRIGGER && !spinning;
-      if (fire) {
-        clearPull();
-        stopAuto(); spin();                       // spin() сам доводит рычаг вниз и отпускает его
-      } else {
-        lever.classList.add('release');           // пружинка возвращает рычаг наверх
-        clearPull();
-      }
-      dy = 0;
-    };
-    knob.addEventListener('pointerup', e => end(e, false));
-    knob.addEventListener('pointercancel', e => end(e, true));
-    knob.addEventListener('click', () => {
-      if (suppressClick) { suppressClick = false; return; }
-      stopAuto(); spin();
-    });
-  })();
+  els.knob.addEventListener('click', () => { stopAuto(); spin(); });
   els.auto.addEventListener('click', () => {
     if (auto) { stopAuto(); return; }
     if (balance < BETS[0]) return;
@@ -1494,4 +1445,3 @@
 </script>
 </body>
 </html>
- 
