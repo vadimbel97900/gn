@@ -91,8 +91,6 @@
   }
   .music.off { opacity: .5; }
   .music.off::after { content: ""; position: absolute; left: 8px; right: 8px; top: 50%; border-top: 2px solid var(--signal); transform: rotate(-35deg); }
-  .vol { display: flex; align-items: center; gap: 10px; padding: 8px 0 4px; border-top: 1px solid rgba(217,166,74,.2); font-size: .85rem; color: var(--muted); }
-  .vol input { flex: 1; min-width: 0; accent-color: var(--brass); }
   .bulbs { display: flex; justify-content: space-between; padding: 10px 4px 0; }
   .bulb {
     width: 10px; height: 10px; border-radius: 50%;
@@ -355,12 +353,6 @@
   .log .e { flex: none; }
   .log .empty { color: var(--muted); }
 
-  .srow { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; padding: 8px 0; border-top: 1px solid rgba(217,166,74,.2); }
-  .srow:first-of-type { border-top: 0; }
-  .srow b { display: block; font-size: .95rem; }
-  .srow small { display: block; margin-top: 2px; color: var(--muted); font-size: .78rem; overflow-wrap: anywhere; }
-  .srow small.ok { color: #9fd9b4; }
-  .srow .chip { height: 38px; font-size: .88rem; }
   .file { position: relative; }
   .file input { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
 
@@ -413,7 +405,6 @@
     transition: opacity .35s ease;
   }
   .welcome[hidden] { display: none; }
-  #soundsBox { display: none; }
   .welcome.out { opacity: 0; pointer-events: none; }
   .welcome .card {
     width: min(100%, 390px);
@@ -563,31 +554,6 @@
     </div>
     </div>
   </section>
-
-  <details id="soundsBox">
-    <summary>Звуки автомата</summary>
-    <div class="srow">
-      <div><b>Все файлы сразу</b><small id="sAll">Выберите из папки сразу три файла: 123456789.mp3, moneyjackpot (4).mp3 и fon.mp3. Автомат сам поймёт, какой куда. Делать это нужно один раз.</small></div>
-      <label class="chip file">Выбрать<input type="file" accept="audio/*" id="fAll" multiple></label>
-    </div>
-    <div class="srow">
-      <div><b>Дерьмовый план</b><small id="sLose">Файл не выбран. Пока играет встроенный грустный звук.</small></div>
-      <label class="chip file">Выбрать<input type="file" accept="audio/*" id="fLose"></label>
-      <button class="chip" id="tLose" aria-label="Проверить звук проигрыша">▶</button>
-    </div>
-    <div class="srow">
-      <div><b>Выигрыш</b><small id="sWin">Файл не выбран. Пока играет встроенный колокольчик.</small></div>
-      <label class="chip file">Выбрать<input type="file" accept="audio/*" id="fWin"></label>
-      <button class="chip" id="tWin" aria-label="Проверить звук выигрыша">▶</button>
-    </div>
-    <div class="srow">
-      <div><b>Фоновая музыка</b><small id="sBg">Файл не выбран. Выберите fon.mp3, и музыка заиграет по кругу.</small></div>
-      <label class="chip file">Выбрать<input type="file" accept="audio/*" id="fBg"></label>
-      <button class="chip" id="tBg" aria-label="Включить или выключить музыку">▶</button>
-    </div>
-    <div class="vol"><label for="vBg">Громкость музыки</label><input type="range" id="vBg" min="0" max="100" value="35"></div>
-    <p class="note">Звук выигрыша обрезается до 5 секунд, последние полторы секунды плавно затухают. Музыка играет по кругу и тише, пока звучат звуки автомата. Файлы остаются в вашем браузере и никуда не отправляются.</p>
-  </details>
 
   <details>
     <summary>Планы и выплаты</summary>
@@ -1064,177 +1030,110 @@
     els.sound.setAttribute('aria-label', muted ? 'Включить звук' : 'Выключить звук');
   });
 
-  /* ---------- Звук: свои mp3 (хранятся в IndexedDB браузера) ---------- */
-  const snd = { lose: { raw: null, buf: null, name: '' }, win: { raw: null, buf: null, name: '' }, bg: { raw: null, buf: null, name: '' } };
+  /* ---------- Звуки: mp3 лежат в той же папке, что и index.html ---------- */
+  const SOUND_FILES = { lose: '123456789.mp3', win: 'moneyjackpot (4).mp3', bg: 'fon.mp3' };
   const WIN_MAX = 5, WIN_FADE = 1.5;
-  const idb = {
-    open() {
-      return new Promise((res, rej) => {
-        if (!window.indexedDB) return rej(new Error('no idb'));
-        const r = indexedDB.open('fortuna-evening-sounds', 1);
-        r.onupgradeneeded = () => r.result.createObjectStore('s');
-        r.onsuccess = () => res(r.result);
-        r.onerror = () => rej(r.error);
-      });
-    },
-    async get(k) { const db = await this.open(); return new Promise((res, rej) => { const q = db.transaction('s').objectStore('s').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); },
-    async set(k, v) { const db = await this.open(); return new Promise((res, rej) => { const tx = db.transaction('s', 'readwrite'); tx.objectStore('s').put(v, k); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); }); },
-  };
-  const status = { lose: $('sLose'), win: $('sWin'), bg: $('sBg') };
-  const fallbackText = { lose: 'Файл не выбран. Пока играет встроенный грустный звук.', win: 'Файл не выбран. Пока играет встроенный колокольчик.', bg: 'Файл не выбран. Выберите fon.mp3, и музыка заиграет по кругу.' };
-  function setStatus(key, text, ok) { status[key].textContent = text; status[key].className = ok ? 'ok' : ''; }
-  function describe(key) {
-    const s = snd[key];
-    if (!s.raw) return setStatus(key, fallbackText[key], false);
-    const d = s.buf ? ` · ${s.buf.duration.toFixed(1).replace('.', ',')} с` : '';
-    const cut = key === 'win' && s.buf && s.buf.duration > WIN_MAX ? ` · будет обрезан до ${WIN_MAX} с` : '';
-    setStatus(key, `Загружен: ${s.name}${d}${cut}`, true);
-  }
-  async function decode(key) {
-    const s = snd[key];
-    if (s.buf || !s.raw) return s.buf;
-    const a = audio(); if (!a) return null;
-    try { s.buf = await a.decodeAudioData(s.raw.slice(0)); }
-    catch (e) { s.buf = null; setStatus(key, 'Не удалось прочитать файл. Попробуйте mp3 или wav.', false); }
-    return s.buf;
+  const snd = {};
+  Object.keys(SOUND_FILES).forEach(key => {
+    const el = new Audio(encodeURI(SOUND_FILES[key]));
+    el.preload = 'auto';
+    snd[key] = { el, bad: false };
+    el.addEventListener('error', () => { snd[key].bad = true; });
+  });
+  function ready(key) {
+    const s = snd[key], el = s.el;
+    if (s.bad) return Promise.resolve(false);
+    if (el.readyState >= 1) return Promise.resolve(true);
+    return new Promise(res => {
+      const done = v => { clearTimeout(tm); el.removeEventListener('loadedmetadata', ok); el.removeEventListener('error', no); res(v); };
+      const ok = () => done(true), no = () => done(false);
+      const tm = setTimeout(() => done(el.readyState >= 1), 1500);
+      el.addEventListener('loadedmetadata', ok); el.addEventListener('error', no);
+    });
   }
   let current = null;
   function stopCurrent() {
-    if (!current || !ac) return;
-    const { g, src } = current; current = null;
-    try { g.gain.cancelScheduledValues(ac.currentTime); g.gain.setValueAtTime(g.gain.value, ac.currentTime); g.gain.linearRampToValueAtTime(0, ac.currentTime + .15); src.stop(ac.currentTime + .2); } catch (e) {}
+    if (!current) return;
+    const c = current; current = null;
+    clearInterval(c.iv); clearTimeout(c.end);
+    const el = c.el, v0 = el.volume; let k = 0;
+    const iv = setInterval(() => {
+      k++; el.volume = Math.max(0, v0 * (1 - k / 3));
+      if (k >= 3) { clearInterval(iv); try { el.pause(); el.currentTime = 0; } catch (e) {} }
+    }, 50);
   }
   async function playSound(key, { max = Infinity, fade = 0, vol = 1 } = {}) {
     if (muted) return 0;
-    const buf = await decode(key);
-    if (!buf) return 0;
-    const a = audio();
+    if (!(await ready(key))) return 0;
+    const el = snd[key].el;
     stopCurrent();
-    const dur = Math.min(buf.duration, max);
-    const t = a.currentTime + .03;
-    const src = a.createBufferSource(), g = a.createGain();
-    src.buffer = buf;
-    g.gain.setValueAtTime(vol, t);
+    const dur = Math.min(isFinite(el.duration) && el.duration > 0 ? el.duration : max, max);
+    if (!isFinite(dur)) return 0;
+    el.loop = false; el.volume = vol;
+    try { el.currentTime = 0; await el.play(); } catch (e) { return 0; }
+    const cur = { el, iv: 0, end: 0 };
+    current = cur;
     if (fade > 0) {
-      const f = Math.min(fade, dur);
-      g.gain.setValueAtTime(vol, t + dur - f);
-      g.gain.linearRampToValueAtTime(0, t + dur);
+      const f = Math.min(fade, dur), t0 = performance.now() + (dur - f) * 1000;
+      cur.iv = setInterval(() => { const k = (performance.now() - t0) / (f * 1000); if (k >= 0) el.volume = Math.max(0, vol * (1 - k)); }, 40);
     }
-    src.connect(g); g.connect(a.destination);
-    src.start(t, 0, dur);
-    current = { src, g };
+    cur.end = setTimeout(() => {
+      clearInterval(cur.iv);
+      try { el.pause(); el.currentTime = 0; } catch (e) {}
+      if (current === cur) current = null;
+    }, dur * 1000);
     duck(dur);
-    src.onended = () => { if (current && current.src === src) current = null; };
     return dur;
   }
   const playLose = () => playSound('lose', { vol: 1 });
   const playWin = () => playSound('win', { max: WIN_MAX, fade: WIN_FADE, vol: 1 });
 
-  async function loadStored() {
-    for (const key of ['lose', 'win', 'bg']) {
-      try {
-        const v = await idb.get(key);
-        if (v && v.data) { snd[key].raw = v.data; snd[key].name = v.name; describe(key); }
-      } catch (e) {}
-    }
-    if (!(snd.lose.raw && snd.win.raw && snd.bg.raw)) $('soundsBox').open = true;
-  }
-  function bindFile(key, input) {
-    input.addEventListener('change', async () => {
-      const f = input.files && input.files[0];
-      if (!f) return;
-      try {
-        const raw = await f.arrayBuffer();
-        snd[key] = { raw, buf: null, name: f.name };
-        try { await idb.set(key, { name: f.name, data: raw }); } catch (e) {}
-        setStatus(key, 'Читаю файл…', false);
-        if (key === 'bg' && music) { try { music.src.stop(); } catch (e) {} music = null; }
-        await decode(key);
-        describe(key);
-        if (key === 'bg' && snd.bg.buf) { musicOn = true; saveMusicPrefs(); startMusic(); refreshMusicUI(); }
-      } catch (e) { setStatus(key, 'Не удалось открыть файл.', false); }
-      input.value = '';
-    });
-  }
-  bindFile('lose', $('fLose')); bindFile('win', $('fWin')); bindFile('bg', $('fBg'));
-  $('tLose').addEventListener('click', async () => { audio(); if (!(await playLose())) sfx.sad(); });
-  $('tWin').addEventListener('click', async () => { audio(); if (!(await playWin())) sfx.good(); });
   /* ---------- Фоновая музыка ---------- */
   const MUSIC_KEY = 'fortuna-evening-music';
-  let music = null, musicOn = true, musicVol = .35, ducks = 0;
-  try { const o = JSON.parse(localStorage.getItem(MUSIC_KEY)); if (o) { if (Number.isFinite(o.vol)) musicVol = Math.min(Math.max(o.vol, 0), 1); musicOn = o.on !== false; } } catch (e) {}
+  let music = false, musicOn = true, ducks = 0, gainIv = 0;
+  const musicVol = .35;
+  try { const o = JSON.parse(localStorage.getItem(MUSIC_KEY)); if (o) musicOn = o.on !== false; } catch (e) {}
   const saveMusicPrefs = () => { try { localStorage.setItem(MUSIC_KEY, JSON.stringify({ vol: musicVol, on: musicOn })); } catch (e) {} };
-  const musicBtn = $('music'), tBg = $('tBg'), vBg = $('vBg');
-  vBg.value = Math.round(musicVol * 100);
+  const musicBtn = $('music');
+  const bgEl = snd.bg.el; bgEl.loop = true; bgEl.volume = 0;
   const musicTarget = () => (muted || !musicOn) ? 0 : musicVol * .5 * (ducks > 0 ? .25 : 1);
   function applyMusicGain() {
-    if (!music || !ac) return;
-    music.g.gain.cancelScheduledValues(ac.currentTime);
-    music.g.gain.setTargetAtTime(musicTarget(), ac.currentTime, .15);
+    clearInterval(gainIv);
+    const target = musicTarget();
+    gainIv = setInterval(() => {
+      const v = bgEl.volume, nv = v + (target - v) * .25;
+      bgEl.volume = Math.abs(nv - target) < .004 ? target : nv;
+      if (bgEl.volume === target) clearInterval(gainIv);
+    }, 50);
   }
   function refreshMusicUI() {
-    musicBtn.classList.toggle('off', !musicOn || !snd.bg.raw);
-    musicBtn.setAttribute('aria-pressed', musicOn && !!snd.bg.raw);
+    musicBtn.classList.toggle('off', !musicOn || snd.bg.bad);
+    musicBtn.setAttribute('aria-pressed', musicOn && !snd.bg.bad);
     musicBtn.setAttribute('aria-label', musicOn ? 'Выключить музыку' : 'Включить музыку');
-    tBg.textContent = musicOn && snd.bg.raw ? '⏸' : '▶';
   }
   function duck(sec) {
     ducks++; applyMusicGain();
     setTimeout(() => { ducks = Math.max(0, ducks - 1); applyMusicGain(); }, sec * 1000 + 300);
   }
   async function startMusic() {
-    if (music || !snd.bg.raw) return;
-    const buf = await decode('bg');
-    if (!buf || music) return;
-    const a = audio(); if (!a) return;
-    const src = a.createBufferSource(), g = a.createGain();
-    src.buffer = buf; src.loop = true;
-    g.gain.value = 0;
-    src.connect(g); g.connect(a.destination);
-    src.start();
-    music = { src, g };
-    g.gain.setTargetAtTime(musicTarget(), a.currentTime, .8);
+    if (music || snd.bg.bad) return;
+    try { await bgEl.play(); } catch (e) { return; }   // браузер ещё не разрешил звук: повторим при следующем касании
+    music = true;
+    applyMusicGain();
   }
   function toggleMusic() {
-    if (!snd.bg.raw) {
-      const box = $('soundsBox'); box.open = true; box.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
-    }
     musicOn = !musicOn; saveMusicPrefs();
     if (musicOn) startMusic();
     applyMusicGain(); refreshMusicUI();
   }
   musicBtn.addEventListener('click', toggleMusic);
-  tBg.addEventListener('click', toggleMusic);
-  vBg.addEventListener('input', () => { musicVol = vBg.value / 100; saveMusicPrefs(); applyMusicGain(); });
   // Браузеры разрешают звук только после касания: запускаем музыку с первого действия
-  ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, () => { if (musicOn && snd.bg.raw && !music) startMusic(); }, { passive: true }));
-  document.addEventListener('visibilitychange', () => { if (!ac) return; if (document.hidden) ac.suspend(); else ac.resume(); });
-  refreshMusicUI();
-
-  // Один выбор сразу трёх файлов: куда какой, определяем по имени
-  $('fAll').addEventListener('change', async e => {
-    const files = [...e.target.files];
-    if (!files.length) return;
-    const info = $('sAll'), got = [], skipped = [];
-    info.textContent = 'Читаю файлы…';
-    for (const f of files) {
-      const n = f.name.toLowerCase();
-      const key = n.includes('123456789') ? 'lose' : (n.includes('money') || n.includes('jackpot')) ? 'win' : n.includes('fon') ? 'bg' : null;
-      if (!key) { skipped.push(f.name); continue; }
-      try {
-        const raw = await f.arrayBuffer();
-        snd[key] = { raw, buf: null, name: f.name };
-        try { await idb.set(key, { name: f.name, data: raw }); } catch (err) {}
-        if (key === 'bg' && music) { try { music.src.stop(); } catch (err) {} music = null; }
-        await decode(key); describe(key); got.push(f.name);
-      } catch (err) { skipped.push(f.name); }
-    }
-    info.textContent = (got.length ? 'Загружено: ' + got.join(', ') + '. ' : '') + (skipped.length ? 'Не распознал по имени: ' + skipped.join(', ') + '. Выберите их кнопками ниже.' : '');
-    if (snd.bg.buf) { musicOn = true; saveMusicPrefs(); startMusic(); }
-    refreshMusicUI();
-    e.target.value = '';
+  ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, () => { if (musicOn && !music) startMusic(); }, { passive: true }));
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { if (music) bgEl.pause(); if (ac) ac.suspend(); }
+    else { if (music && musicOn) bgEl.play().catch(() => {}); if (ac) ac.resume(); }
   });
+  refreshMusicUI();
 
   /* ---------- Приветственное окно ---------- */
   const welcome = $('welcome'), wGo = $('wGo'), wNote = $('wNote');
@@ -1244,13 +1143,13 @@
     if (welcomed) return;
     welcomed = true;
     audio();                                         // нажатие — единственный момент, когда браузер разрешает звук
-    if (musicOn && snd.bg.raw) startMusic();
+    if (musicOn) startMusic();
     welcome.classList.add('out');
     setTimeout(() => { welcome.hidden = true; }, 380);
   }
   wGo.addEventListener('click', closeWelcome);
   wGo.focus({ preventScroll: true });
-  loadStored().then(() => { refreshMusicUI(); updateWelcomeNote(); if (welcomed && musicOn) startMusic(); });
+  refreshMusicUI(); updateWelcomeNote(); if (welcomed && musicOn) startMusic();
 
   /* ---------- Монеты ---------- */
   const cv = $('fx'), cx = cv.getContext('2d');
@@ -1337,7 +1236,7 @@
       setMsg('Монеты пополнены. Вперёд, за вечером!', 'win'); refreshControls(); updateJackpot(); return;
     }
     fitBet();
-    audio(); decode('lose'); decode('win');
+    audio();
     stopCurrent(); closeGamble(); hideRant();
     spinning = true;
     const b = bet();
